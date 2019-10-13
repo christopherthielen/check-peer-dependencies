@@ -26,6 +26,12 @@
   "homepage": "https://github.com/christopherthielen/check-peer-dependencies#readme",
   "dependencies": {
     "@types/node": "^12.7.12",
-    "typescript": "^3.6.4"
+    "@types/semver": "^6.0.2",
+    "@types/shelljs": "^0.8.5",
+    "@types/yargs": "^13.0.3",
+    "semver": "^6.3.0",
+    "shelljs": "^0.8.3",
+    "typescript": "^3.6.4",
+    "yargs": "^14.2.0"
   }
 }
