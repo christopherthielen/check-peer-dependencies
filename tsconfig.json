@@ -1,0 +1,9 @@
+{
+  "files": [
+    "./src/check_peer_dependencies.ts"
+  ],
+  "compilerOptions": {
+    "lib": ["es7"],
+    "outDir": "dist"
+  }
+}

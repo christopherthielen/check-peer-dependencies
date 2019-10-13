@@ -2,8 +2,10 @@
   "name": "check-peer-dependencies",
   "version": "1.0.0",
   "description": "Checks peer dependencies of the current package.  Offers solutions for any that are unmet.",
-  "main": "index.js",
+  "main": "dist/check_peer_dependencies.js",
   "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -21,5 +23,9 @@
   "bugs": {
     "url": "https://github.com/christopherthielen/check-peer-dependencies/issues"
   },
-  "homepage": "https://github.com/christopherthielen/check-peer-dependencies#readme"
+  "homepage": "https://github.com/christopherthielen/check-peer-dependencies#readme",
+  "dependencies": {
+    "@types/node": "^12.7.12",
+    "typescript": "^3.6.4"
+  }
 }
