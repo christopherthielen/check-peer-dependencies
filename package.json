@@ -1,0 +1,25 @@
+{
+  "name": "check-peer-dependencies",
+  "version": "1.0.0",
+  "description": "Checks peer dependencies of the current package.  Offers solutions for any that are unmet.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/christopherthielen/check-peer-dependencies.git"
+  },
+  "keywords": [
+    "nodejs",
+    "install",
+    "peer",
+    "dependencies"
+  ],
+  "author": "Chris Thielen",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/christopherthielen/check-peer-dependencies/issues"
+  },
+  "homepage": "https://github.com/christopherthielen/check-peer-dependencies#readme"
+}
