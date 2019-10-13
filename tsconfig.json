@@ -1,6 +1,6 @@
 {
   "files": [
-    "./src/check_peer_dependencies.ts"
+    "./src/cli.ts"
   ],
   "compilerOptions": {
     "lib": ["es7"],

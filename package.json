@@ -8,6 +8,9 @@
     "prepublishOnly": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "bin": {
+    "check-peer-dependencies": "dist/cli.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/christopherthielen/check-peer-dependencies.git"
