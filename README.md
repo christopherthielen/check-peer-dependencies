@@ -14,12 +14,15 @@ usage:
 npx check-peer-dependencies [--yarn|--npm] [--install] [--help]
 ```
 
-options:
 
-- `--install`: if any peerDependencies are incorrect, installs correct versions
-- `--yarn`: force yarn package manager mode
-- `--npm`: force npm package manager mode
-- `--help`: print usage information
+Options:
+```
+  --help, -h  Print usage information                                  [boolean]
+  --version   Show version number                                      [boolean]
+  --yarn      Use yarn package manager                                 [boolean]
+  --npm       Use npm package manager                                  [boolean]
+  --install   Install missing or incorrect peerDependencies            [boolean]
+```
 
 ---
 
