@@ -40,5 +40,5 @@ if (options.help) {
   process.exit(-2);
 }
 
-const packageManager = getPackageManager(options);
+const packageManager = getPackageManager(options.yarn, options.npm);
 checkPeerDependencies(packageManager, options.install);
