@@ -1,6 +1,6 @@
 ## check-peer-dependencies
 
-Checks peer dependencies of the current NodeJS package.  Offers solutions for any that are unmet.
+**Checks peer dependencies of the current NodeJS package.  Offers solutions for any that are unmet.**
 
 This utility will recursively find all `peerDependencies` in your project's `dependencies` list.
 It checks if you have installed a package that meets the required peer dependency versions.
