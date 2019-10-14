@@ -24,7 +24,7 @@ export function checkPeerDependencies(packageManager: string, installMissingPeer
     }
   });
 
-  const problems = allNestedPeerDependencies.filter(dep => !dep.semverSatisfies && !/file:\.yalc/.exec(dep.dependerVersion));
+  const problems = allNestedPeerDependencies.filter(dep => !dep.semverSatisfies && !/file:\.yalc/.exec(dep.installedVersion));
 
   if (!problems.length) {
     console.log('No problems found!');
