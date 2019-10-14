@@ -1,8 +1,10 @@
-import * as fs from 'fs';
-import * as yarrrrgs from 'yargs';
-import { checkPeerDependencies } from './check_peer_dependencies';
+#!/usr/bin/env node
 
-const yargs = yarrrrgs
+import * as yarrrrgs from 'yargs';
+import { checkPeerDependencies } from './checkPeerDependencies';
+import { getPackageManager } from './packageManager';
+
+const options: CliOptions = yarrrrgs
     .option('help', {
       alias: 'h',
       boolean: true,
@@ -25,10 +27,18 @@ const yargs = yarrrrgs
         throw new Error('Specify either --yarn or --npm but not both');
       }
       return true;
-    });
+    }).argv;
 
-if (yargs.argv.help) {
+export interface CliOptions {
+    help: boolean;
+    yarn: boolean;
+    npm: boolean;
+    install: boolean;
+}
+
+if (options.help) {
   process.exit(-2);
 }
 
-checkPeerDependencies(yargs);
+const packageManager = getPackageManager(options);
+checkPeerDependencies(packageManager, options.install);
