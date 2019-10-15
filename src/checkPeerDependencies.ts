@@ -11,12 +11,15 @@ export function checkPeerDependencies(packageManager: string, installMissingPeer
   const allNestedPeerDependencies: Dependency[] = gatheredDependencies.map(dep => {
     const installedVersion = getInstalledVersion(dep);
     const semverSatisfies = installedVersion ? semver.satisfies(installedVersion, dep.version) : false;
-    return { ...dep, installedVersion, semverSatisfies };
+    const isYalc = !!/-[a-f0-9]+-yalc$/.exec(installedVersion);
+    return { ...dep, installedVersion, semverSatisfies, isYalc };
   }).sort((a, b) => `${a.name}${a.depender}`.localeCompare(`${b.name}${b.depender}`));
 
   allNestedPeerDependencies.forEach(dep => {
     if (dep.semverSatisfies) {
       console.log(`✅  ${dep.depender}@${dep.dependerVersion} requires ${dep.name} ${dep.version} (${dep.installedVersion} is installed)`);
+    } else if (dep.isYalc) {
+      console.log(`☑️  ${dep.depender}@${dep.dependerVersion} requires ${dep.name} ${dep.version} (${dep.installedVersion} is installed via yalc)`);
     } else if (dep.installedVersion) {
       console.log(`❌  ${dep.depender}@${dep.dependerVersion} requires ${dep.name} ${dep.version} (${dep.installedVersion} is installed)`);
     } else {
@@ -24,7 +27,7 @@ export function checkPeerDependencies(packageManager: string, installMissingPeer
     }
   });
 
-  const problems = allNestedPeerDependencies.filter(dep => !dep.semverSatisfies && !/file:\.yalc/.exec(dep.installedVersion));
+  const problems = allNestedPeerDependencies.filter(dep => !dep.semverSatisfies && !dep.isYalc);
 
   if (!problems.length) {
     console.log('No problems found!');

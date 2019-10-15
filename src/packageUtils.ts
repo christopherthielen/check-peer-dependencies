@@ -25,6 +25,7 @@ export interface Dependency {
   dependerVersion: string;
   installedVersion?: string | undefined;
   semverSatisfies?: boolean;
+  isYalc?: boolean;
 }
 
 interface PackageDependencies {
@@ -121,5 +122,6 @@ export function getInstalledVersion(dep: Dependency): string | undefined {
     return undefined;
   }
   const packageJson = readJson(path.resolve(peerDependencyDir, 'package.json'));
-  return packageJson.version;
+  const isYalc = fs.existsSync(path.resolve(peerDependencyDir, 'yalc.sig'));
+  return isYalc ? `${packageJson.version}-yalc` : packageJson.version;
 }
