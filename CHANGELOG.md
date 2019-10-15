@@ -1,3 +1,13 @@
+## 1.0.2 (2019-10-15)
+[Compare `check-peer-dependencies` versions 1.0.1 and 1.0.2](https://github.com/christopherthielen/check-peer-dependencies/compare/1.0.1...1.0.2)
+
+### Features
+
+* Add better support for packages installed via yalc ([15af2ac](https://github.com/christopherthielen/check-peer-dependencies/commit/15af2ac))
+
+
+
+
 ## 1.0.1 (2019-10-15)
 1.0.1
 
