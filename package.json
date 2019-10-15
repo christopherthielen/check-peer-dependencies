@@ -6,6 +6,7 @@
   "scripts": {
     "build": "tsc",
     "prepublishOnly": "npm run build",
+    "release": "release",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": {
@@ -37,6 +38,7 @@
     "@types/semver": "^6.0.2",
     "@types/shelljs": "^0.8.5",
     "@types/yargs": "^13.0.3",
+    "@uirouter/publish-scripts": "^2.3.34",
     "typescript": "^3.6.4"
   }
 }
