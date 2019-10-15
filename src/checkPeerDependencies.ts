@@ -32,7 +32,8 @@ export function checkPeerDependencies(packageManager: string, installMissingPeer
   }
 
   console.log();
-  console.log('Searching for solutions:');
+  console.log('Searching for solutions...');
+  console.log();
   const resolutions = findPossibleResolutions(problems, allNestedPeerDependencies);
   const installs = resolutions.filter(r => r.resolution && r.resolutionType === 'install').map(r => r.resolution);
   const upgrades = resolutions.filter(r => r.resolution && r.resolutionType === 'upgrade').map(r => r.resolution);
@@ -51,11 +52,19 @@ export function checkPeerDependencies(packageManager: string, installMissingPeer
     console.error();
   }
 
+  const commandLines = getCommandLines(packageManager, installs, upgrades);
   if (installMissingPeerDependencies) {
     console.log('Installing peerDependencies...');
-    getCommandLines(packageManager, installs, upgrades).forEach(command => exec(command));
+    console.log();
+    commandLines.forEach(command => {
+      console.log(`$ ${command}`);
+      exec(command);
+      console.log();
+    });
   } else {
-    getCommandLines(packageManager, installs, upgrades).forEach(command => console.log(command));
+    console.log(`Install peerDependencies using ${commandLines.length > 1 ? 'these commands:' : 'this command'}:`);
+    console.log();
+    commandLines.forEach(command => console.log(command));
     console.log();
   }
 }
