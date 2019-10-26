@@ -42,7 +42,7 @@ export function gatherPeerDependencies(packagePath): Dependency[] {
 
   walkPackageDependencyTree(packagePath, (path, json, deps) => {
     peerDeps = peerDeps.concat(deps.peerDependencies)
-  });
+  }, []);
 
   // Eliminate duplicates
   return peerDeps.reduce((acc: Dependency[], dep: Dependency) => {
@@ -50,8 +50,14 @@ export function gatherPeerDependencies(packagePath): Dependency[] {
   }, [] as Dependency[])
 }
 
-export function walkPackageDependencyTree(packagePath: string, visitor: DependencyWalkVisitor) {
+export function walkPackageDependencyTree(packagePath: string, visitor: DependencyWalkVisitor, visitedPaths: string[]) {
+  if (visitedPaths.includes(packagePath)) {
+    return;
+  }
+  visitedPaths.push(packagePath);
+
   const packageJsonPath = path.join(packagePath, 'package.json');
+
   if (!fs.existsSync(packageJsonPath)) {
     throw new Error(`package.json missing at ${packageJsonPath}.`);
   }
@@ -70,7 +76,7 @@ export function walkPackageDependencyTree(packagePath: string, visitor: Dependen
     if (!dependencyPath) {
       throw new Error(`Unable to resolve package ${dependency.name} from ${packagePath}`)
     }
-    walkPackageDependencyTree(dependencyPath, visitor);
+    walkPackageDependencyTree(dependencyPath, visitor, visitedPaths);
   }
 
   packageDependencies.dependencies.forEach(walkDependency);
