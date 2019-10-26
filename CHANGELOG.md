@@ -1,3 +1,13 @@
+## 1.0.4 (2019-10-26)
+[Compare `check-peer-dependencies` versions 1.0.3 and 1.0.4](https://github.com/christopherthielen/check-peer-dependencies/compare/1.0.3...1.0.4)
+
+### Bug Fixes
+
+* handle recursive package dependencies when walking package deps ([87f6e99](https://github.com/christopherthielen/check-peer-dependencies/commit/87f6e99))
+
+
+
+
 ## 1.0.3 (2019-10-26)
 [Compare `check-peer-dependencies` versions 1.0.2 and 1.0.3](https://github.com/christopherthielen/check-peer-dependencies/compare/1.0.2...1.0.3)
 
