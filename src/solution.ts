@@ -1,3 +1,4 @@
+import { createECDH } from 'crypto';
 import * as semver from 'semver';
 import { exec } from 'shelljs';
 import { Dependency } from './packageUtils';
@@ -32,8 +33,17 @@ export function findPossibleResolutions(problems: Dependency[], allPeerDependenc
 
 function findPossibleResolution(packageName, allPeerDeps) {
   const requiredPeerVersions = allPeerDeps.filter(dep => dep.name === packageName);
-  const rawVersionsInfo = exec(`npm view ${packageName} versions`, { silent: true }).stdout;
-  const availableVersions = JSON.parse(rawVersionsInfo.replace(/'/g, '"')).sort(semverReverseSort);
-
-  return availableVersions.find(ver => requiredPeerVersions.every(peerVer => semver.satisfies(ver, peerVer.version)));
+  const command = `npm view ${packageName} versions`;
+  let rawVersionsInfo;
+  try {
+    rawVersionsInfo = exec(command, { silent: true }).stdout;
+    const availableVersions = JSON.parse(rawVersionsInfo.replace(/'/g, '"')).sort(semverReverseSort);
+    return availableVersions.find(ver => requiredPeerVersions.every(peerVer => semver.satisfies(ver, peerVer.version)));
+  } catch (err) {
+    console.error(`Error while running command: '${command}'`);
+    console.error(err);
+    console.error();
+    console.error('npm output:');
+    console.error(rawVersionsInfo);
+  }
 }
