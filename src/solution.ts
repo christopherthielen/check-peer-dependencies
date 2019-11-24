@@ -1,4 +1,3 @@
-import { createECDH } from 'crypto';
 import * as semver from 'semver';
 import { exec } from 'shelljs';
 import { Dependency } from './packageUtils';

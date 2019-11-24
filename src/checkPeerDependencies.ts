@@ -6,14 +6,24 @@ import { getCommandLines } from './packageManager';
 import { Dependency, gatherPeerDependencies, getInstalledVersion } from './packageUtils';
 import { findPossibleResolutions } from './solution';
 
-export function checkPeerDependencies(packageManager: string, installMissingPeerDependencies: boolean) {
+function getAllNestedPeerDependencies() {
   const gatheredDependencies = gatherPeerDependencies(".");
+
   const allNestedPeerDependencies: Dependency[] = gatheredDependencies.map(dep => {
     const installedVersion = getInstalledVersion(dep);
     const semverSatisfies = installedVersion ? semver.satisfies(installedVersion, dep.version) : false;
     const isYalc = !!/-[a-f0-9]+-yalc$/.exec(installedVersion);
+
     return { ...dep, installedVersion, semverSatisfies, isYalc };
-  }).sort((a, b) => `${a.name}${a.depender}`.localeCompare(`${b.name}${b.depender}`));
+  });
+
+  return allNestedPeerDependencies.sort((a, b) => `${a.name}${a.depender}`.localeCompare(`${b.name}${b.depender}`));
+}
+
+let recursiveCount = 0;
+
+export function checkPeerDependencies(packageManager: string, installMissingPeerDependencies: boolean) {
+  const allNestedPeerDependencies = getAllNestedPeerDependencies();
 
   allNestedPeerDependencies.forEach(dep => {
     if (dep.semverSatisfies) {
@@ -64,6 +74,20 @@ export function checkPeerDependencies(packageManager: string, installMissingPeer
       exec(command);
       console.log();
     });
+
+    const newUnsatisfiedDeps = getAllNestedPeerDependencies().filter(dep => !dep.semverSatisfies);
+    if (newUnsatisfiedDeps.length > 0) {
+      console.log(`Found ${newUnsatisfiedDeps.length} new unmet peerDependencies...`);
+      if (++recursiveCount < 5) {
+        return checkPeerDependencies(packageManager, installMissingPeerDependencies);
+      } else {
+        console.error('Recursion limit reached (5)');
+        process.exit(5)
+      }
+    } else {
+      console.log('All peer dependencies are met');
+    }
+
   } else {
     console.log(`Install peerDependencies using ${commandLines.length > 1 ? 'these commands:' : 'this command'}:`);
     console.log();
