@@ -1,3 +1,13 @@
+## 1.0.5 (2019-11-24)
+[Compare `check-peer-dependencies` versions 1.0.4 and 1.0.5](https://github.com/christopherthielen/check-peer-dependencies/compare/1.0.4...1.0.5)
+
+### Features
+
+* Recursively check for new unmet peer dependencies after installing when using --install ([b632efb](https://github.com/christopherthielen/check-peer-dependencies/commit/b632efb))
+
+
+
+
 ## 1.0.4 (2019-10-26)
 [Compare `check-peer-dependencies` versions 1.0.3 and 1.0.4](https://github.com/christopherthielen/check-peer-dependencies/compare/1.0.3...1.0.4)
 
