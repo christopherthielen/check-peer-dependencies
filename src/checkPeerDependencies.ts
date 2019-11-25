@@ -17,7 +17,7 @@ function getAllNestedPeerDependencies() {
     return { ...dep, installedVersion, semverSatisfies, isYalc };
   });
 
-  return allNestedPeerDependencies.sort((a, b) => `${a.name}${a.depender}`.localeCompare(`${b.name}${b.depender}`));
+  return allNestedPeerDependencies.sort((a, b) => `${a.depender}${a.name}`.localeCompare(`${b.depender}${b.name}`));
 }
 
 let recursiveCount = 0;
