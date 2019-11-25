@@ -1,3 +1,13 @@
+## 1.0.7 (2019-11-25)
+[Compare `check-peer-dependencies` versions 1.0.6 and 1.0.7](https://github.com/christopherthielen/check-peer-dependencies/compare/1.0.6...1.0.7)
+
+### Bug Fixes
+
+* Update packageFilter for breaking change in resolve package ([15ade47](https://github.com/christopherthielen/check-peer-dependencies/commit/15ade47))
+
+
+
+
 ## 1.0.6 (2019-11-25)
 [Compare `check-peer-dependencies` versions 1.0.5 and 1.0.6](https://github.com/christopherthielen/check-peer-dependencies/compare/1.0.5...1.0.6)
 

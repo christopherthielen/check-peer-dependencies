@@ -1,6 +1,6 @@
 {
   "name": "check-peer-dependencies",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Checks peer dependencies of the current package.  Offers solutions for any that are unmet.",
   "main": "dist/check_peer_dependencies.js",
   "scripts": {
