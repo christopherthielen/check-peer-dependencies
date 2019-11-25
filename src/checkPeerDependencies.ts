@@ -61,12 +61,12 @@ export function checkPeerDependencies(packageManager: string, installMissingPeer
   });
 
 
-  if (nosolution.length) {
+  if (nosolution.length > 0) {
     console.error();
   }
 
   const commandLines = getCommandLines(packageManager, installs, upgrades);
-  if (installMissingPeerDependencies) {
+  if (installMissingPeerDependencies && commandLines.length > 0) {
     console.log('Installing peerDependencies...');
     console.log();
     commandLines.forEach(command => {
@@ -75,7 +75,14 @@ export function checkPeerDependencies(packageManager: string, installMissingPeer
       console.log();
     });
 
-    const newUnsatisfiedDeps = getAllNestedPeerDependencies().filter(dep => !dep.semverSatisfies);
+    const newUnsatisfiedDeps = getAllNestedPeerDependencies()
+        .filter(dep => !dep.semverSatisfies)
+        .filter(dep => !nosolution.some(x => isSameDep(x.problem, dep)));
+
+    if (nosolution.length === 0 && newUnsatisfiedDeps.length === 0) {
+      console.log('All peer dependencies are met');
+    }
+
     if (newUnsatisfiedDeps.length > 0) {
       console.log(`Found ${newUnsatisfiedDeps.length} new unmet peerDependencies...`);
       if (++recursiveCount < 5) {
@@ -84,11 +91,9 @@ export function checkPeerDependencies(packageManager: string, installMissingPeer
         console.error('Recursion limit reached (5)');
         process.exit(5)
       }
-    } else {
-      console.log('All peer dependencies are met');
     }
 
-  } else {
+  } else if (commandLines.length > 0) {
     console.log(`Install peerDependencies using ${commandLines.length > 1 ? 'these commands:' : 'this command'}:`);
     console.log();
     commandLines.forEach(command => console.log(command));
@@ -96,3 +101,18 @@ export function checkPeerDependencies(packageManager: string, installMissingPeer
   }
 }
 
+
+function isSameDep(a: Dependency, b: Dependency) {
+  const keys: Array<keyof Dependency> = [
+    "name",
+    "version",
+    "depender",
+    "dependerPath",
+    "dependerVersion",
+    "installedVersion",
+    "semverSatisfies",
+    "isYalc"
+  ];
+
+  return keys.every(key => a[key] === b[key]);
+}
