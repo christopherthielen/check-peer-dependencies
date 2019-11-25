@@ -1,3 +1,14 @@
+## 1.0.6 (2019-11-25)
+[Compare `check-peer-dependencies` versions 1.0.5 and 1.0.6](https://github.com/christopherthielen/check-peer-dependencies/compare/1.0.5...1.0.6)
+
+### Features
+
+* sort peer dependencies by depender package name first ([3d656a6](https://github.com/christopherthielen/check-peer-dependencies/commit/3d656a6))
+* when recursively installing peer deps, don't re-process previously unmet peer deps ([ce9fe3e](https://github.com/christopherthielen/check-peer-dependencies/commit/ce9fe3e))
+
+
+
+
 ## 1.0.5 (2019-11-24)
 [Compare `check-peer-dependencies` versions 1.0.4 and 1.0.5](https://github.com/christopherthielen/check-peer-dependencies/compare/1.0.4...1.0.5)
 
