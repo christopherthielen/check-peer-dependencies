@@ -29,16 +29,17 @@
   },
   "homepage": "https://github.com/christopherthielen/check-peer-dependencies#readme",
   "dependencies": {
+    "resolve": "^1.12.2",
     "semver": "^6.3.0",
     "shelljs": "^0.8.3",
-    "yargs": "^14.2.0"
+    "yargs": "^15.0.2"
   },
   "devDependencies": {
-    "@types/node": "^12.7.12",
-    "@types/semver": "^6.0.2",
-    "@types/shelljs": "^0.8.5",
+    "@types/node": "^12.12.12",
+    "@types/semver": "^6.2.0",
+    "@types/shelljs": "^0.8.6",
     "@types/yargs": "^13.0.3",
-    "@uirouter/publish-scripts": "^2.3.34",
-    "typescript": "^3.6.4"
+    "@uirouter/publish-scripts": "^2.3.39",
+    "typescript": "^3.7.2"
   }
 }

@@ -106,8 +106,8 @@ export function getPackageDependencies(packagePath: string, packageJson: Package
 export function resolvePackageDir(basedir: string, packageName: string) {
   let packagePath;
 
-  function packageFilter(pkg, pkgfile) {
-    packagePath = pkgfile;
+  function packageFilter(pkg, pkgfile, pkgdir) {
+    packagePath = pkgdir;
     return pkg;
   }
 
