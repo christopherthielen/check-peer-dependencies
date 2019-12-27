@@ -1,3 +1,13 @@
+## 1.0.8 (2019-12-27)
+[Compare `check-peer-dependencies` versions 1.0.7 and 1.0.8](https://github.com/christopherthielen/check-peer-dependencies/compare/1.0.7...1.0.8)
+
+### Bug Fixes
+
+* Revert fix for breaking change in resolve package after they reverted the breaking change itself. ([d25c43a](https://github.com/christopherthielen/check-peer-dependencies/commit/d25c43a))
+
+
+
+
 ## 1.0.7 (2019-11-25)
 [Compare `check-peer-dependencies` versions 1.0.6 and 1.0.7](https://github.com/christopherthielen/check-peer-dependencies/compare/1.0.6...1.0.7)
 
