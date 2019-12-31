@@ -1,3 +1,14 @@
+## 1.0.9 (2019-12-31)
+[Compare `check-peer-dependencies` versions 1.0.8 and 1.0.9](https://github.com/christopherthielen/check-peer-dependencies/compare/1.0.8...1.0.9)
+
+### Features
+
+* **debug:** Added a --debug cli flag ([862232e](https://github.com/christopherthielen/check-peer-dependencies/commit/862232e))
+* **orderBy:** Added a --orderBy cli flag ([9e7b8af](https://github.com/christopherthielen/check-peer-dependencies/commit/9e7b8af))
+
+
+
+
 ## 1.0.8 (2019-12-27)
 [Compare `check-peer-dependencies` versions 1.0.7 and 1.0.8](https://github.com/christopherthielen/check-peer-dependencies/compare/1.0.7...1.0.8)
 
