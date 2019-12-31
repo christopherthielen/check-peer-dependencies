@@ -4,7 +4,7 @@ import * as yarrrrgs from 'yargs';
 import { checkPeerDependencies } from './checkPeerDependencies';
 import { getPackageManager } from './packageManager';
 
-const options: CliOptions = yarrrrgs
+const options = yarrrrgs
     .option('help', {
       alias: 'h',
       boolean: true,
@@ -18,27 +18,33 @@ const options: CliOptions = yarrrrgs
       boolean: true,
       description: `Use npm package manager`,
     })
+    .option('orderBy', {
+      choices: ['depender', 'dependee'],
+      default: 'depender',
+      description: 'Order the output by depender or dependee',
+    })
     .option('debug', {
       boolean: true,
-      description: 'Print debugging information'
+      description: 'Print debugging information',
     })
     .option('install', {
       boolean: true,
-      description: 'Install missing or incorrect peerDependencies'
+      description: 'Install missing or incorrect peerDependencies',
     })
     .check(argv => {
       if (argv.yarn && argv.npm) {
         throw new Error('Specify either --yarn or --npm but not both');
       }
       return true;
-    }).argv;
+    }).argv as CliOptions;
 
 export interface CliOptions {
-    help: boolean;
-    yarn: boolean;
-    debug: boolean;
-    npm: boolean;
-    install: boolean;
+  help: boolean;
+  yarn: boolean;
+  debug: boolean;
+  npm: boolean;
+  orderBy: 'depender' | 'dependee';
+  install: boolean;
 }
 
 if (options.help) {

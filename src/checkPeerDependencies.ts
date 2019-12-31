@@ -17,26 +17,44 @@ function getAllNestedPeerDependencies(options: CliOptions) {
 
     return { ...dep, installedVersion, semverSatisfies, isYalc };
   });
-
-  return allNestedPeerDependencies.sort((a, b) => `${a.depender}${a.name}`.localeCompare(`${b.depender}${b.name}`));
+  return allNestedPeerDependencies;
 }
 
 let recursiveCount = 0;
 
+const reportPeerDependencyStatusByDepender = (dep: Dependency) => {
+  if (dep.semverSatisfies) {
+    console.log(`✅  ${dep.depender}@${dep.dependerVersion} requires ${dep.name} ${dep.version} (${dep.installedVersion} is installed)`);
+  } else if (dep.isYalc) {
+    console.log(`☑️  ${dep.depender}@${dep.dependerVersion} requires ${dep.name} ${dep.version} (${dep.installedVersion} is installed via yalc)`);
+  } else if (dep.installedVersion) {
+    console.log(`❌  ${dep.depender}@${dep.dependerVersion} requires ${dep.name} ${dep.version} (${dep.installedVersion} is installed)`);
+  } else {
+    console.log(`❌  ${dep.depender}@${dep.dependerVersion} requires ${dep.name} ${dep.version} (${dep.name} is not installed)`);
+  }
+};
+
+const reportPeerDependencyStatusByDependee = (dep: Dependency) => {
+  if (dep.semverSatisfies) {
+    console.log(`✅  ${dep.name} ${dep.version} is required by ${dep.depender}@${dep.dependerVersion} (${dep.installedVersion} is installed)`);
+  } else if (dep.isYalc) {
+    console.log(`☑️  ${dep.name} ${dep.version} is required by ${dep.depender}@${dep.dependerVersion} (${dep.installedVersion} is installed via yalc)`);
+  } else if (dep.installedVersion) {
+    console.log(`❌  ${dep.name} ${dep.version} is required by ${dep.depender}@${dep.dependerVersion} (${dep.installedVersion} is installed)`);
+  } else {
+    console.log(`❌  ${dep.name} ${dep.version} is required by ${dep.depender}@${dep.dependerVersion} (${dep.name} is not installed)`);
+  }
+};
+
 export function checkPeerDependencies(packageManager: string, options: CliOptions) {
   const allNestedPeerDependencies = getAllNestedPeerDependencies(options);
-
-  allNestedPeerDependencies.forEach(dep => {
-    if (dep.semverSatisfies) {
-      console.log(`✅  ${dep.depender}@${dep.dependerVersion} requires ${dep.name} ${dep.version} (${dep.installedVersion} is installed)`);
-    } else if (dep.isYalc) {
-      console.log(`☑️  ${dep.depender}@${dep.dependerVersion} requires ${dep.name} ${dep.version} (${dep.installedVersion} is installed via yalc)`);
-    } else if (dep.installedVersion) {
-      console.log(`❌  ${dep.depender}@${dep.dependerVersion} requires ${dep.name} ${dep.version} (${dep.installedVersion} is installed)`);
-    } else {
-      console.log(`❌  ${dep.depender}@${dep.dependerVersion} requires ${dep.name} ${dep.version} (${dep.name} is not installed)`);
-    }
-  });
+  if (options.orderBy === 'depender') {
+    allNestedPeerDependencies.sort((a, b) => `${a.depender}${a.name}`.localeCompare(`${b.depender}${b.name}`))
+    allNestedPeerDependencies.forEach(reportPeerDependencyStatusByDepender);
+  } else if (options.orderBy === 'dependee') {
+    allNestedPeerDependencies.sort((a, b) => `${a.name}${a.depender}`.localeCompare(`${b.name}${b.depender}`))
+    allNestedPeerDependencies.forEach(reportPeerDependencyStatusByDependee);
+  }
 
   const problems = allNestedPeerDependencies.filter(dep => !dep.semverSatisfies && !dep.isYalc);
 
