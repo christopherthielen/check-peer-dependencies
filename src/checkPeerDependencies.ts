@@ -2,12 +2,13 @@
 import * as semver from 'semver';
 
 import { exec } from 'shelljs';
+import { CliOptions } from './cli';
 import { getCommandLines } from './packageManager';
 import { Dependency, gatherPeerDependencies, getInstalledVersion } from './packageUtils';
 import { findPossibleResolutions } from './solution';
 
-function getAllNestedPeerDependencies() {
-  const gatheredDependencies = gatherPeerDependencies(".");
+function getAllNestedPeerDependencies(options: CliOptions) {
+  const gatheredDependencies = gatherPeerDependencies(".", options);
 
   const allNestedPeerDependencies: Dependency[] = gatheredDependencies.map(dep => {
     const installedVersion = getInstalledVersion(dep);
@@ -22,8 +23,8 @@ function getAllNestedPeerDependencies() {
 
 let recursiveCount = 0;
 
-export function checkPeerDependencies(packageManager: string, installMissingPeerDependencies: boolean) {
-  const allNestedPeerDependencies = getAllNestedPeerDependencies();
+export function checkPeerDependencies(packageManager: string, options: CliOptions) {
+  const allNestedPeerDependencies = getAllNestedPeerDependencies(options);
 
   allNestedPeerDependencies.forEach(dep => {
     if (dep.semverSatisfies) {
@@ -66,7 +67,7 @@ export function checkPeerDependencies(packageManager: string, installMissingPeer
   }
 
   const commandLines = getCommandLines(packageManager, installs, upgrades);
-  if (installMissingPeerDependencies && commandLines.length > 0) {
+  if (options.install && commandLines.length > 0) {
     console.log('Installing peerDependencies...');
     console.log();
     commandLines.forEach(command => {
@@ -75,7 +76,7 @@ export function checkPeerDependencies(packageManager: string, installMissingPeer
       console.log();
     });
 
-    const newUnsatisfiedDeps = getAllNestedPeerDependencies()
+    const newUnsatisfiedDeps = getAllNestedPeerDependencies(options)
         .filter(dep => !dep.semverSatisfies)
         .filter(dep => !nosolution.some(x => isSameDep(x.problem, dep)));
 
@@ -86,7 +87,7 @@ export function checkPeerDependencies(packageManager: string, installMissingPeer
     if (newUnsatisfiedDeps.length > 0) {
       console.log(`Found ${newUnsatisfiedDeps.length} new unmet peerDependencies...`);
       if (++recursiveCount < 5) {
-        return checkPeerDependencies(packageManager, installMissingPeerDependencies);
+        return checkPeerDependencies(packageManager, options);
       } else {
         console.error('Recursion limit reached (5)');
         process.exit(5)

@@ -18,6 +18,10 @@ const options: CliOptions = yarrrrgs
       boolean: true,
       description: `Use npm package manager`,
     })
+    .option('debug', {
+      boolean: true,
+      description: 'Print debugging information'
+    })
     .option('install', {
       boolean: true,
       description: 'Install missing or incorrect peerDependencies'
@@ -32,6 +36,7 @@ const options: CliOptions = yarrrrgs
 export interface CliOptions {
     help: boolean;
     yarn: boolean;
+    debug: boolean;
     npm: boolean;
     install: boolean;
 }
@@ -41,4 +46,4 @@ if (options.help) {
 }
 
 const packageManager = getPackageManager(options.yarn, options.npm);
-checkPeerDependencies(packageManager, options.install);
+checkPeerDependencies(packageManager, options);

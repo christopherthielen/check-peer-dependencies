@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from "path";
 import * as resolve from 'resolve';
+import { CliOptions } from './cli';
 import { readJson } from './readJson';
 
 interface PackageJson {
@@ -37,20 +38,27 @@ interface PackageDependencies {
 
 type DependencyWalkVisitor = (packagePath: string, packageJson: PackageJson, packageDependencies: PackageDependencies) => void;
 
-export function gatherPeerDependencies(packagePath): Dependency[] {
+export function gatherPeerDependencies(packagePath, options: CliOptions): Dependency[] {
   let peerDeps = [];
-
-  walkPackageDependencyTree(packagePath, (path, json, deps) => {
-    peerDeps = peerDeps.concat(deps.peerDependencies)
-  }, []);
+  const visitor: DependencyWalkVisitor = (path, json, deps) => {
+    peerDeps = peerDeps.concat(deps.peerDependencies);
+  };
+  walkPackageDependencyTree(packagePath, visitor, [], options);
 
   // Eliminate duplicates
+  const isSame = (dep: Dependency, dep2: Dependency) => {
+    return dep.name === dep2.name
+        && dep.version === dep2.version
+        && dep.depender === dep2.depender
+        && dep.dependerVersion === dep2.dependerVersion;
+  };
+
   return peerDeps.reduce((acc: Dependency[], dep: Dependency) => {
-    return acc.some(dep2 => dep.name === dep2.name && dep.version === dep2.version) ? acc : acc.concat(dep);
+    return acc.some(dep2 => isSame(dep, dep2)) ? acc : acc.concat(dep);
   }, [] as Dependency[])
 }
 
-export function walkPackageDependencyTree(packagePath: string, visitor: DependencyWalkVisitor, visitedPaths: string[]) {
+export function walkPackageDependencyTree(packagePath: string, visitor: DependencyWalkVisitor, visitedPaths: string[], options: CliOptions) {
   if (visitedPaths.includes(packagePath)) {
     return;
   }
@@ -65,6 +73,10 @@ export function walkPackageDependencyTree(packagePath: string, visitor: Dependen
   const packageJson = readJson(packageJsonPath) as PackageJson;
   const packageDependencies = getPackageDependencies(packagePath, packageJson);
 
+  if (options.debug) {
+    console.log(packageJsonPath);
+    packageDependencies.peerDependencies.forEach(dep => console.log(dep))
+  }
   visitor(packagePath, packageJson, packageDependencies);
 
   function walkDependency(dependency) {
@@ -76,7 +88,7 @@ export function walkPackageDependencyTree(packagePath: string, visitor: Dependen
     if (!dependencyPath) {
       throw new Error(`Unable to resolve package ${dependency.name} from ${packagePath}`)
     }
-    walkPackageDependencyTree(dependencyPath, visitor, visitedPaths);
+    walkPackageDependencyTree(dependencyPath, visitor, visitedPaths, options);
   }
 
   packageDependencies.dependencies.forEach(walkDependency);
@@ -121,6 +133,7 @@ export function resolvePackageDir(basedir: string, packageName: string) {
     // As long as we have a packagePath, it's fine
   }
 
+  // noinspection JSUnusedAssignment
   return packagePath;
 }
 
