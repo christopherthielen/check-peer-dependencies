@@ -1,3 +1,13 @@
+## 1.0.10 (2020-03-03)
+[Compare `check-peer-dependencies` versions 1.0.9 and 1.0.10](https://github.com/christopherthielen/check-peer-dependencies/compare/1.0.9...1.0.10)
+
+### Features
+
+* **verbose:** Turn off verbose logging by default ([04cde8a](https://github.com/christopherthielen/check-peer-dependencies/commit/04cde8a))
+
+
+
+
 ## 1.0.9 (2019-12-31)
 [Compare `check-peer-dependencies` versions 1.0.8 and 1.0.9](https://github.com/christopherthielen/check-peer-dependencies/compare/1.0.8...1.0.9)
 
