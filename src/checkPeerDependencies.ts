@@ -22,27 +22,31 @@ function getAllNestedPeerDependencies(options: CliOptions) {
 
 let recursiveCount = 0;
 
-const reportPeerDependencyStatusByDepender = (dep: Dependency) => {
+const reportPeerDependencyStatusByDepender = (dep: Dependency, options: CliOptions) => {
   if (dep.semverSatisfies) {
-    console.log(`✅  ${dep.depender}@${dep.dependerVersion} requires ${dep.name} ${dep.version} (${dep.installedVersion} is installed)`);
+    if (options.verbose) {
+      console.log(`  ✅  ${dep.depender}@${dep.dependerVersion} requires ${dep.name} ${dep.version} (${dep.installedVersion} is installed)`);
+    }
   } else if (dep.isYalc) {
-    console.log(`☑️  ${dep.depender}@${dep.dependerVersion} requires ${dep.name} ${dep.version} (${dep.installedVersion} is installed via yalc)`);
+    console.log(`  ☑️  ${dep.depender}@${dep.dependerVersion} requires ${dep.name} ${dep.version} (${dep.installedVersion} is installed via yalc)`);
   } else if (dep.installedVersion) {
-    console.log(`❌  ${dep.depender}@${dep.dependerVersion} requires ${dep.name} ${dep.version} (${dep.installedVersion} is installed)`);
+    console.log(`  ❌  ${dep.depender}@${dep.dependerVersion} requires ${dep.name} ${dep.version} (${dep.installedVersion} is installed)`);
   } else {
-    console.log(`❌  ${dep.depender}@${dep.dependerVersion} requires ${dep.name} ${dep.version} (${dep.name} is not installed)`);
+    console.log(`  ❌  ${dep.depender}@${dep.dependerVersion} requires ${dep.name} ${dep.version} (${dep.name} is not installed)`);
   }
 };
 
-const reportPeerDependencyStatusByDependee = (dep: Dependency) => {
+const reportPeerDependencyStatusByDependee = (dep: Dependency, options: CliOptions) => {
   if (dep.semverSatisfies) {
-    console.log(`✅  ${dep.name} ${dep.version} is required by ${dep.depender}@${dep.dependerVersion} (${dep.installedVersion} is installed)`);
+    if (options.verbose) {
+      console.log(`  ✅  ${dep.name} ${dep.version} is required by ${dep.depender}@${dep.dependerVersion} (${dep.installedVersion} is installed)`);
+    }
   } else if (dep.isYalc) {
-    console.log(`☑️  ${dep.name} ${dep.version} is required by ${dep.depender}@${dep.dependerVersion} (${dep.installedVersion} is installed via yalc)`);
+    console.log(`  ☑️  ${dep.name} ${dep.version} is required by ${dep.depender}@${dep.dependerVersion} (${dep.installedVersion} is installed via yalc)`);
   } else if (dep.installedVersion) {
-    console.log(`❌  ${dep.name} ${dep.version} is required by ${dep.depender}@${dep.dependerVersion} (${dep.installedVersion} is installed)`);
+    console.log(`  ❌  ${dep.name} ${dep.version} is required by ${dep.depender}@${dep.dependerVersion} (${dep.installedVersion} is installed)`);
   } else {
-    console.log(`❌  ${dep.name} ${dep.version} is required by ${dep.depender}@${dep.dependerVersion} (${dep.name} is not installed)`);
+    console.log(`  ❌  ${dep.name} ${dep.version} is required by ${dep.depender}@${dep.dependerVersion} (${dep.name} is not installed)`);
   }
 };
 
@@ -50,16 +54,16 @@ export function checkPeerDependencies(packageManager: string, options: CliOption
   const allNestedPeerDependencies = getAllNestedPeerDependencies(options);
   if (options.orderBy === 'depender') {
     allNestedPeerDependencies.sort((a, b) => `${a.depender}${a.name}`.localeCompare(`${b.depender}${b.name}`))
-    allNestedPeerDependencies.forEach(reportPeerDependencyStatusByDepender);
+    allNestedPeerDependencies.forEach(dep => reportPeerDependencyStatusByDepender(dep, options));
   } else if (options.orderBy === 'dependee') {
     allNestedPeerDependencies.sort((a, b) => `${a.name}${a.depender}`.localeCompare(`${b.name}${b.depender}`))
-    allNestedPeerDependencies.forEach(reportPeerDependencyStatusByDependee);
+    allNestedPeerDependencies.forEach(dep => reportPeerDependencyStatusByDependee(dep, options));
   }
 
   const problems = allNestedPeerDependencies.filter(dep => !dep.semverSatisfies && !dep.isYalc);
 
   if (!problems.length) {
-    console.log('No problems found!');
+    console.log('  ✅  All peer dependencies are met');
     return;
   }
 
@@ -76,7 +80,7 @@ export function checkPeerDependencies(packageManager: string, options: CliOption
     const errorPrefix = `Unable to find a version of ${name} that satisfies the following peerDependencies:`;
     const peerDepRanges = allNestedPeerDependencies.filter(dep => dep.name === name)
         .reduce((acc, dep) => acc.includes(dep.version) ? acc : acc.concat(dep.version), []);
-    console.error(`❌  ${errorPrefix} ${peerDepRanges.join(" and ")}`)
+    console.error(`  ❌  ${errorPrefix} ${peerDepRanges.join(" and ")}`)
   });
 
 

@@ -25,10 +25,17 @@ const options = yarrrrgs
     })
     .option('debug', {
       boolean: true,
+      default: false,
       description: 'Print debugging information',
+    })
+    .option('verbose', {
+      boolean: true,
+      default: false,
+      description: 'Prints every peer dependency, even those that are met',
     })
     .option('install', {
       boolean: true,
+      default: false,
       description: 'Install missing or incorrect peerDependencies',
     })
     .check(argv => {
@@ -41,6 +48,7 @@ const options = yarrrrgs
 export interface CliOptions {
   help: boolean;
   yarn: boolean;
+  verbose: boolean;
   debug: boolean;
   npm: boolean;
   orderBy: 'depender' | 'dependee';
