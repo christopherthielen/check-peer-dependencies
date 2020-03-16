@@ -115,6 +115,7 @@ export function checkPeerDependencies(packageManager: string, options: CliOption
         process.exit(5)
       }
     }
+    return;
 
   } else if (commandLines.length > 0) {
     console.log(`Install peerDependencies using ${commandLines.length > 1 ? 'these commands:' : 'this command'}:`);
@@ -122,6 +123,7 @@ export function checkPeerDependencies(packageManager: string, options: CliOption
     commandLines.forEach(command => console.log(command));
     console.log();
   }
+  process.exit(5);
 }
 
 
