@@ -1,3 +1,8 @@
+## 1.0.11 (2020-03-16)
+[Compare `check-peer-dependencies` versions 1.0.10 and 1.0.11](https://github.com/christopherthielen/check-peer-dependencies/compare/1.0.10...1.0.11)
+
+**feat**: Exit with exit code 1 if unmet peer dependencies are detected
+
 ## 1.0.10 (2020-03-03)
 [Compare `check-peer-dependencies` versions 1.0.9 and 1.0.10](https://github.com/christopherthielen/check-peer-dependencies/compare/1.0.9...1.0.10)
 
