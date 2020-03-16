@@ -123,7 +123,7 @@ export function checkPeerDependencies(packageManager: string, options: CliOption
     commandLines.forEach(command => console.log(command));
     console.log();
   }
-  process.exit(5);
+  process.exit(1);
 }
 
 
