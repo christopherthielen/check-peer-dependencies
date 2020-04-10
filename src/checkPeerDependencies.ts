@@ -4,10 +4,10 @@ import * as semver from 'semver';
 import { exec } from 'shelljs';
 import { CliOptions } from './cli';
 import { getCommandLines } from './packageManager';
-import { Dependency, gatherPeerDependencies, getInstalledVersion } from './packageUtils';
+import { Dependency, gatherPeerDependencies, getInstalledVersion, isSameDep } from './packageUtils';
 import { findPossibleResolutions, Resolution } from './solution';
 
-function getAllNestedPeerDependencies(options: CliOptions) {
+function getAllNestedPeerDependencies(options: CliOptions): Dependency[] {
   const gatheredDependencies = gatherPeerDependencies(".", options);
 
   function applySemverInformation(dep: Dependency): Dependency {
@@ -18,10 +18,7 @@ function getAllNestedPeerDependencies(options: CliOptions) {
     return { ...dep, installedVersion, semverSatisfies, isYalc };
   }
 
-  const allNestedPeerDependencies = gatheredDependencies.peerDependencies.map(applySemverInformation);
-  const allNestedPeerDevDependencies = gatheredDependencies.peerDevDependencies.map(applySemverInformation);
-
-  return { allNestedPeerDependencies, allNestedPeerDevDependencies };
+  return gatheredDependencies.map(applySemverInformation);
 }
 
 let recursiveCount = 0;
@@ -55,18 +52,17 @@ const reportPeerDependencyStatusByDependee = (dep: Dependency, options: CliOptio
 };
 
 export function checkPeerDependencies(packageManager: string, options: CliOptions) {
-  const { allNestedPeerDependencies, allNestedPeerDevDependencies }  = getAllNestedPeerDependencies(options);
-  const combinedPeerAndPeerDevDependencies = [...allNestedPeerDependencies, ...allNestedPeerDevDependencies];
+  const allNestedPeerDependencies = getAllNestedPeerDependencies(options);
 
   if (options.orderBy === 'depender') {
-    combinedPeerAndPeerDevDependencies.sort((a, b) => `${a.depender}${a.name}`.localeCompare(`${b.depender}${b.name}`));
-    combinedPeerAndPeerDevDependencies.forEach(dep => reportPeerDependencyStatusByDepender(dep, options));
+    allNestedPeerDependencies.sort((a, b) => `${a.depender}${a.name}`.localeCompare(`${b.depender}${b.name}`));
+    allNestedPeerDependencies.forEach(dep => reportPeerDependencyStatusByDepender(dep, options));
   } else if (options.orderBy === 'dependee') {
-    combinedPeerAndPeerDevDependencies.sort((a, b) => `${a.name}${a.depender}`.localeCompare(`${b.name}${b.depender}`));
-    combinedPeerAndPeerDevDependencies.forEach(dep => reportPeerDependencyStatusByDependee(dep, options));
+    allNestedPeerDependencies.sort((a, b) => `${a.name}${a.depender}`.localeCompare(`${b.name}${b.depender}`));
+    allNestedPeerDependencies.forEach(dep => reportPeerDependencyStatusByDependee(dep, options));
   }
 
-  const problems = combinedPeerAndPeerDevDependencies.filter(dep => !dep.semverSatisfies && !dep.isYalc);
+  const problems = allNestedPeerDependencies.filter(dep => !dep.semverSatisfies && !dep.isYalc);
 
   if (!problems.length) {
     console.log('  ✅  All peer dependencies are met');
@@ -76,14 +72,14 @@ export function checkPeerDependencies(packageManager: string, options: CliOption
   console.log();
   console.log('Searching for solutions...');
   console.log();
-  const resolutions: Resolution[] = findPossibleResolutions(problems, allNestedPeerDependencies, allNestedPeerDevDependencies);
+  const resolutions: Resolution[] = findPossibleResolutions(problems, allNestedPeerDependencies);
   const resolutionsWithSolutions = resolutions.filter(r => r.resolution);
   const nosolution = resolutions.filter(r => !r.resolution);
 
   nosolution.forEach(solution => {
     const name = solution.problem.name;
     const errorPrefix = `Unable to find a version of ${name} that satisfies the following peerDependencies:`;
-    const peerDepRanges = combinedPeerAndPeerDevDependencies.filter(dep => dep.name === name)
+    const peerDepRanges = allNestedPeerDependencies.filter(dep => dep.name === name)
         .reduce((acc, dep) => acc.includes(dep.version) ? acc : acc.concat(dep.version), []);
     console.error(`  ❌  ${errorPrefix} ${peerDepRanges.join(" and ")}`)
   });
@@ -103,8 +99,7 @@ export function checkPeerDependencies(packageManager: string, options: CliOption
       console.log();
     });
 
-    const checkAgain = getAllNestedPeerDependencies(options);
-    const newUnsatisfiedDeps = [...checkAgain.allNestedPeerDependencies, ...checkAgain.allNestedPeerDevDependencies]
+    const newUnsatisfiedDeps = getAllNestedPeerDependencies(options)
         .filter(dep => !dep.semverSatisfies)
         .filter(dep => !nosolution.some(x => isSameDep(x.problem, dep)));
 
@@ -130,20 +125,4 @@ export function checkPeerDependencies(packageManager: string, options: CliOption
     console.log();
   }
   process.exit(1);
-}
-
-
-function isSameDep(a: Dependency, b: Dependency) {
-  const keys: Array<keyof Dependency> = [
-    "name",
-    "version",
-    "depender",
-    "dependerPath",
-    "dependerVersion",
-    "installedVersion",
-    "semverSatisfies",
-    "isYalc"
-  ];
-
-  return keys.every(key => a[key] === b[key]);
 }

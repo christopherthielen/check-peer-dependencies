@@ -16,13 +16,14 @@ interface PackageJson {
   peerDependencies: {
     [key: string]: string;
   };
-  // What is a peerDevDependency??!?! This is not a standard.
-  // It is only supported by this tool as a means to specify peerDependencies to install as devDependencies.
+
+  // What is a peerDevDependency? This is not a standard.
+  // This is an array of package names found in `peerDependencies` which should be installed as devDependencies.
   // This addresses a specific use case: to provide downstream projects with package building opinions such as
-  // a specific version of rollup and typescript.
-  peerDevDependencies: {
-    [key: string]: string;
-  };
+  // a specific version of react and rollup and typescript.
+  // Example:
+  // peerDevDependencies: ["rollup", "typescript"]
+  peerDevDependencies: string[];
 }
 
 export interface Dependency {
@@ -34,6 +35,7 @@ export interface Dependency {
   installedVersion?: string | undefined;
   semverSatisfies?: boolean;
   isYalc?: boolean;
+  isPeerDevDependency?: boolean;
 }
 
 interface PackageDependencies {
@@ -41,42 +43,22 @@ interface PackageDependencies {
   dependencies: Dependency[];
   devDependencies: Dependency[];
   peerDependencies: Dependency[];
-  peerDevDependencies: Dependency[];
-}
-
-interface GatheredDependencies {
-  peerDependencies: Dependency[];
-  peerDevDependencies: Dependency[];
+  peerDevDependencies: string[];
 }
 
 type DependencyWalkVisitor = (packagePath: string, packageJson: PackageJson, packageDependencies: PackageDependencies) => void;
 
-export function gatherPeerDependencies(packagePath, options: CliOptions): GatheredDependencies {
-  let peerDeps = [];
-  let peerDevDeps = [];
+export function gatherPeerDependencies(packagePath, options: CliOptions): Dependency[] {
+  let peerDeps: Dependency[] = [];
   const visitor: DependencyWalkVisitor = (path, json, deps) => {
     peerDeps = peerDeps.concat(deps.peerDependencies);
-    peerDevDeps = peerDevDeps.concat(deps.peerDevDependencies);
   };
   walkPackageDependencyTree(packagePath, visitor, [], options);
 
   // Eliminate duplicates
-  const isSame = (dep: Dependency, dep2: Dependency) => {
-    return dep.name === dep2.name
-        && dep.version === dep2.version
-        && dep.depender === dep2.depender
-        && dep.dependerVersion === dep2.dependerVersion;
-  };
-
-  const peerDependencies = peerDeps.reduce((acc: Dependency[], dep: Dependency) => {
-    return acc.some(dep2 => isSame(dep, dep2)) ? acc : acc.concat(dep);
-  }, [] as Dependency[])
-
-  const peerDevDependencies = peerDevDeps.reduce((acc: Dependency[], dep: Dependency) => {
-    return acc.some(dep2 => isSame(dep, dep2)) ? acc : acc.concat(dep);
-  }, [] as Dependency[])
-
-  return { peerDependencies, peerDevDependencies };
+  return peerDeps.reduce((acc: Dependency[], dep: Dependency) => {
+    return acc.some(dep2 => isSameDep(dep, dep2)) ? acc : acc.concat(dep);
+  }, [] as Dependency[]);
 }
 
 export function walkPackageDependencyTree(packagePath: string, visitor: DependencyWalkVisitor, visitedPaths: string[], options: CliOptions) {
@@ -126,14 +108,17 @@ function buildDependencyArray(packagePath: string, packageJson: PackageJson, dep
 }
 
 export function getPackageDependencies(packagePath: string, packageJson: PackageJson): PackageDependencies {
-  const { name, dependencies = {}, devDependencies = {}, peerDependencies = {}, peerDevDependencies = {} } = packageJson;
+  const { name, dependencies = {}, devDependencies = {}, peerDependencies = {}, peerDevDependencies = [] } = packageJson;
+
+  const applyPeerDevDependencies= (dep: Dependency): Dependency =>
+      ({ ...dep, isPeerDevDependency: peerDevDependencies.includes(dep.name) });
 
   return {
     packageName: name,
     dependencies: buildDependencyArray(packagePath, packageJson, dependencies),
     devDependencies: buildDependencyArray(packagePath, packageJson, devDependencies),
-    peerDependencies: buildDependencyArray(packagePath, packageJson, peerDependencies),
-    peerDevDependencies: buildDependencyArray(packagePath, packageJson, peerDevDependencies),
+    peerDependencies: buildDependencyArray(packagePath, packageJson, peerDependencies).map(applyPeerDevDependencies),
+    peerDevDependencies,
   };
 }
 
@@ -167,4 +152,21 @@ export function getInstalledVersion(dep: Dependency): string | undefined {
   const packageJson = readJson(path.resolve(peerDependencyDir, 'package.json'));
   const isYalc = fs.existsSync(path.resolve(peerDependencyDir, 'yalc.sig'));
   return isYalc ? `${packageJson.version}-yalc` : packageJson.version;
+}
+
+
+export function isSameDep(a: Dependency, b: Dependency) {
+  const keys: Array<keyof Dependency> = [
+    "name",
+    "version",
+    "depender",
+    "dependerPath",
+    "dependerVersion",
+    "installedVersion",
+    "semverSatisfies",
+    "isYalc",
+    "isPeerDevDependency",
+  ];
+
+  return keys.every(key => a[key] === b[key]);
 }

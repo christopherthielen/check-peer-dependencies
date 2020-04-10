@@ -19,13 +19,11 @@ export interface Resolution {
   resolutionType: 'upgrade' | 'install' | 'devInstall';
 }
 
-export function findPossibleResolutions(problems: Dependency[], peerDependencies: Dependency[], peerDevDependencies: Dependency[]): Resolution[] {
-  const allPeerDependencies = [...peerDependencies, ...peerDevDependencies];
+export function findPossibleResolutions(problems: Dependency[], allPeerDependencies: Dependency[], ): Resolution[] {
   const uniq: Dependency[] = problems.reduce((acc, problem) => acc.some(dep => dep.name === problem.name) ? acc : acc.concat(problem), []);
   return uniq.map(problem => {
     const shouldUpgrade = !!problem.installedVersion;
-    const isPeerDevDep = peerDevDependencies.some(dep => dep.name === problem.name);
-    const resolutionType = shouldUpgrade ? 'upgrade' : isPeerDevDep ? 'devInstall' : 'install';
+    const resolutionType = shouldUpgrade ? 'upgrade' : problem.isPeerDevDependency ? 'devInstall' : 'install';
     const resolutionVersion = findPossibleResolution(problem.name, allPeerDependencies);
     const resolution = resolutionVersion ? `${problem.name}@${resolutionVersion}` : null;
 

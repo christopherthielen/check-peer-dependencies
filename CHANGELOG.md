@@ -3,7 +3,6 @@
 
 ### Features
 
-* **check-peer-dependencies-optional-dependency:** Added a workaround for yarn swallowing postinstall script output ([a9c9fdf](https://github.com/christopherthielen/check-peer-dependencies/commit/a9c9fdf))
 * **peerDevDependencies:** Add support for 'peerDevDependencies' -- 'peerDependencies' that should be installed as 'devDependencies' ([47d40ef](https://github.com/christopherthielen/check-peer-dependencies/commit/47d40ef))
 
 
