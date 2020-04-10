@@ -86,3 +86,6 @@ Searching for solutions:
 yarn upgrade @angular/router@8.2.10
 ```
 
+## Running as postinstall script using `yarn` package manager
+
+Please see [check-peer-dependencies-optional-dependency](https://github.com/christopherthielen/check-peer-dependencies/tree/master/packages/check-peer-dependencies-optional-dependency)

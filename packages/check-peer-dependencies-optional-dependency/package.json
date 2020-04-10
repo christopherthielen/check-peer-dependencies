@@ -1,0 +1,10 @@
+{
+  "name": "check-peer-dependencies-optional-dependency",
+  "version": "1.0.0",
+  "description": "Add this module as an optional dependency to check peer dependencies as a postinstall script (yarn)",
+  "author": "Chris Thielen",
+  "license": "MIT",
+  "scripts": {
+    "postinstall": "npx check-peer-dependencies"
+  }
+}
