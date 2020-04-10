@@ -1,3 +1,14 @@
+# 2.0.0 (2020-04-10)
+[Compare `check-peer-dependencies` versions 1.0.11 and 2.0.0](https://github.com/christopherthielen/check-peer-dependencies/compare/1.0.11...2.0.0)
+
+### Features
+
+* **check-peer-dependencies-optional-dependency:** Added a workaround for yarn swallowing postinstall script output ([a9c9fdf](https://github.com/christopherthielen/check-peer-dependencies/commit/a9c9fdf))
+* **peerDevDependencies:** Add support for 'peerDevDependencies' -- 'peerDependencies' that should be installed as 'devDependencies' ([47d40ef](https://github.com/christopherthielen/check-peer-dependencies/commit/47d40ef))
+
+
+
+
 ## 1.0.11 (2020-03-16)
 [Compare `check-peer-dependencies` versions 1.0.10 and 1.0.11](https://github.com/christopherthielen/check-peer-dependencies/compare/1.0.10...1.0.11)
 
