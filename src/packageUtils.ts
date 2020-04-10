@@ -16,6 +16,13 @@ interface PackageJson {
   peerDependencies: {
     [key: string]: string;
   };
+  // What is a peerDevDependency??!?! This is not a standard.
+  // It is only supported by this tool as a means to specify peerDependencies to install as devDependencies.
+  // This addresses a specific use case: to provide downstream projects with package building opinions such as
+  // a specific version of rollup and typescript.
+  peerDevDependencies: {
+    [key: string]: string;
+  };
 }
 
 export interface Dependency {
@@ -34,14 +41,22 @@ interface PackageDependencies {
   dependencies: Dependency[];
   devDependencies: Dependency[];
   peerDependencies: Dependency[];
+  peerDevDependencies: Dependency[];
+}
+
+interface GatheredDependencies {
+  peerDependencies: Dependency[];
+  peerDevDependencies: Dependency[];
 }
 
 type DependencyWalkVisitor = (packagePath: string, packageJson: PackageJson, packageDependencies: PackageDependencies) => void;
 
-export function gatherPeerDependencies(packagePath, options: CliOptions): Dependency[] {
+export function gatherPeerDependencies(packagePath, options: CliOptions): GatheredDependencies {
   let peerDeps = [];
+  let peerDevDeps = [];
   const visitor: DependencyWalkVisitor = (path, json, deps) => {
     peerDeps = peerDeps.concat(deps.peerDependencies);
+    peerDevDeps = peerDevDeps.concat(deps.peerDevDependencies);
   };
   walkPackageDependencyTree(packagePath, visitor, [], options);
 
@@ -53,9 +68,15 @@ export function gatherPeerDependencies(packagePath, options: CliOptions): Depend
         && dep.dependerVersion === dep2.dependerVersion;
   };
 
-  return peerDeps.reduce((acc: Dependency[], dep: Dependency) => {
+  const peerDependencies = peerDeps.reduce((acc: Dependency[], dep: Dependency) => {
     return acc.some(dep2 => isSame(dep, dep2)) ? acc : acc.concat(dep);
   }, [] as Dependency[])
+
+  const peerDevDependencies = peerDevDeps.reduce((acc: Dependency[], dep: Dependency) => {
+    return acc.some(dep2 => isSame(dep, dep2)) ? acc : acc.concat(dep);
+  }, [] as Dependency[])
+
+  return { peerDependencies, peerDevDependencies };
 }
 
 export function walkPackageDependencyTree(packagePath: string, visitor: DependencyWalkVisitor, visitedPaths: string[], options: CliOptions) {
@@ -105,13 +126,14 @@ function buildDependencyArray(packagePath: string, packageJson: PackageJson, dep
 }
 
 export function getPackageDependencies(packagePath: string, packageJson: PackageJson): PackageDependencies {
-  const { name, dependencies = {}, devDependencies = {}, peerDependencies = {} } = packageJson;
+  const { name, dependencies = {}, devDependencies = {}, peerDependencies = {}, peerDevDependencies = {} } = packageJson;
 
   return {
     packageName: name,
     dependencies: buildDependencyArray(packagePath, packageJson, dependencies),
     devDependencies: buildDependencyArray(packagePath, packageJson, devDependencies),
     peerDependencies: buildDependencyArray(packagePath, packageJson, peerDependencies),
+    peerDevDependencies: buildDependencyArray(packagePath, packageJson, peerDevDependencies),
   };
 }
 

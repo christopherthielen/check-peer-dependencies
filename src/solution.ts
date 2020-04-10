@@ -13,16 +13,19 @@ function semverReverseSort(a, b) {
   return -1;
 }
 
-interface Resolution {
+export interface Resolution {
   problem: Dependency;
   resolution: string;
-  resolutionType: 'upgrade' | 'install';
+  resolutionType: 'upgrade' | 'install' | 'devInstall';
 }
 
-export function findPossibleResolutions(problems: Dependency[], allPeerDependencies: Dependency[]): Resolution[] {
+export function findPossibleResolutions(problems: Dependency[], peerDependencies: Dependency[], peerDevDependencies: Dependency[]): Resolution[] {
+  const allPeerDependencies = [...peerDependencies, ...peerDevDependencies];
   const uniq: Dependency[] = problems.reduce((acc, problem) => acc.some(dep => dep.name === problem.name) ? acc : acc.concat(problem), []);
   return uniq.map(problem => {
-    const resolutionType = problem.installedVersion ? 'upgrade' : 'install';
+    const shouldUpgrade = !!problem.installedVersion;
+    const isPeerDevDep = peerDevDependencies.some(dep => dep.name === problem.name);
+    const resolutionType = shouldUpgrade ? 'upgrade' : isPeerDevDep ? 'devInstall' : 'install';
     const resolutionVersion = findPossibleResolution(problem.name, allPeerDependencies);
     const resolution = resolutionVersion ? `${problem.name}@${resolutionVersion}` : null;
 

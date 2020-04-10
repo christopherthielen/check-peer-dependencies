@@ -12,11 +12,11 @@ const options = yarrrrgs
     })
     .option('yarn', {
       boolean: true,
-      description: `Use yarn package manager`,
+      description: `Force yarn package manager`,
     })
     .option('npm', {
       boolean: true,
-      description: `Use npm package manager`,
+      description: `Force npm package manager`,
     })
     .option('orderBy', {
       choices: ['depender', 'dependee'],

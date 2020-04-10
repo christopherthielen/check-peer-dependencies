@@ -5,19 +5,23 @@ import { exec } from 'shelljs';
 import { CliOptions } from './cli';
 import { getCommandLines } from './packageManager';
 import { Dependency, gatherPeerDependencies, getInstalledVersion } from './packageUtils';
-import { findPossibleResolutions } from './solution';
+import { findPossibleResolutions, Resolution } from './solution';
 
 function getAllNestedPeerDependencies(options: CliOptions) {
   const gatheredDependencies = gatherPeerDependencies(".", options);
 
-  const allNestedPeerDependencies: Dependency[] = gatheredDependencies.map(dep => {
+  function applySemverInformation(dep: Dependency): Dependency {
     const installedVersion = getInstalledVersion(dep);
     const semverSatisfies = installedVersion ? semver.satisfies(installedVersion, dep.version) : false;
     const isYalc = !!/-[a-f0-9]+-yalc$/.exec(installedVersion);
 
     return { ...dep, installedVersion, semverSatisfies, isYalc };
-  });
-  return allNestedPeerDependencies;
+  }
+
+  const allNestedPeerDependencies = gatheredDependencies.peerDependencies.map(applySemverInformation);
+  const allNestedPeerDevDependencies = gatheredDependencies.peerDevDependencies.map(applySemverInformation);
+
+  return { allNestedPeerDependencies, allNestedPeerDevDependencies };
 }
 
 let recursiveCount = 0;
@@ -51,16 +55,18 @@ const reportPeerDependencyStatusByDependee = (dep: Dependency, options: CliOptio
 };
 
 export function checkPeerDependencies(packageManager: string, options: CliOptions) {
-  const allNestedPeerDependencies = getAllNestedPeerDependencies(options);
+  const { allNestedPeerDependencies, allNestedPeerDevDependencies }  = getAllNestedPeerDependencies(options);
+  const combinedPeerAndPeerDevDependencies = [...allNestedPeerDependencies, ...allNestedPeerDevDependencies];
+
   if (options.orderBy === 'depender') {
-    allNestedPeerDependencies.sort((a, b) => `${a.depender}${a.name}`.localeCompare(`${b.depender}${b.name}`))
-    allNestedPeerDependencies.forEach(dep => reportPeerDependencyStatusByDepender(dep, options));
+    combinedPeerAndPeerDevDependencies.sort((a, b) => `${a.depender}${a.name}`.localeCompare(`${b.depender}${b.name}`));
+    combinedPeerAndPeerDevDependencies.forEach(dep => reportPeerDependencyStatusByDepender(dep, options));
   } else if (options.orderBy === 'dependee') {
-    allNestedPeerDependencies.sort((a, b) => `${a.name}${a.depender}`.localeCompare(`${b.name}${b.depender}`))
-    allNestedPeerDependencies.forEach(dep => reportPeerDependencyStatusByDependee(dep, options));
+    combinedPeerAndPeerDevDependencies.sort((a, b) => `${a.name}${a.depender}`.localeCompare(`${b.name}${b.depender}`));
+    combinedPeerAndPeerDevDependencies.forEach(dep => reportPeerDependencyStatusByDependee(dep, options));
   }
 
-  const problems = allNestedPeerDependencies.filter(dep => !dep.semverSatisfies && !dep.isYalc);
+  const problems = combinedPeerAndPeerDevDependencies.filter(dep => !dep.semverSatisfies && !dep.isYalc);
 
   if (!problems.length) {
     console.log('  ✅  All peer dependencies are met');
@@ -70,15 +76,14 @@ export function checkPeerDependencies(packageManager: string, options: CliOption
   console.log();
   console.log('Searching for solutions...');
   console.log();
-  const resolutions = findPossibleResolutions(problems, allNestedPeerDependencies);
-  const installs = resolutions.filter(r => r.resolution && r.resolutionType === 'install').map(r => r.resolution);
-  const upgrades = resolutions.filter(r => r.resolution && r.resolutionType === 'upgrade').map(r => r.resolution);
+  const resolutions: Resolution[] = findPossibleResolutions(problems, allNestedPeerDependencies, allNestedPeerDevDependencies);
+  const resolutionsWithSolutions = resolutions.filter(r => r.resolution);
   const nosolution = resolutions.filter(r => !r.resolution);
 
   nosolution.forEach(solution => {
     const name = solution.problem.name;
     const errorPrefix = `Unable to find a version of ${name} that satisfies the following peerDependencies:`;
-    const peerDepRanges = allNestedPeerDependencies.filter(dep => dep.name === name)
+    const peerDepRanges = combinedPeerAndPeerDevDependencies.filter(dep => dep.name === name)
         .reduce((acc, dep) => acc.includes(dep.version) ? acc : acc.concat(dep.version), []);
     console.error(`  ❌  ${errorPrefix} ${peerDepRanges.join(" and ")}`)
   });
@@ -88,7 +93,7 @@ export function checkPeerDependencies(packageManager: string, options: CliOption
     console.error();
   }
 
-  const commandLines = getCommandLines(packageManager, installs, upgrades);
+  const commandLines = getCommandLines(packageManager, resolutionsWithSolutions);
   if (options.install && commandLines.length > 0) {
     console.log('Installing peerDependencies...');
     console.log();
@@ -98,7 +103,8 @@ export function checkPeerDependencies(packageManager: string, options: CliOption
       console.log();
     });
 
-    const newUnsatisfiedDeps = getAllNestedPeerDependencies(options)
+    const checkAgain = getAllNestedPeerDependencies(options);
+    const newUnsatisfiedDeps = [...checkAgain.allNestedPeerDependencies, ...checkAgain.allNestedPeerDevDependencies]
         .filter(dep => !dep.semverSatisfies)
         .filter(dep => !nosolution.some(x => isSameDep(x.problem, dep)));
 
