@@ -1,3 +1,13 @@
+## 2.0.1 (2020-04-10)
+[Compare `check-peer-dependencies` versions 2.0.0 and 2.0.1](https://github.com/christopherthielen/check-peer-dependencies/compare/2.0.0...2.0.1)
+
+### Bug Fixes
+
+* **peerDevDependencies:** Use an array of package names in 'peerDevDependencies' in conjunction with the standard 'peerDependencies' object to install peer deps as devDependencies. ([681a80b](https://github.com/christopherthielen/check-peer-dependencies/commit/681a80b))
+
+
+
+
 # 2.0.0 (2020-04-10)
 [Compare `check-peer-dependencies` versions 1.0.11 and 2.0.0](https://github.com/christopherthielen/check-peer-dependencies/compare/1.0.11...2.0.0)
 
