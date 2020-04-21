@@ -111,7 +111,7 @@ export function getPackageDependencies(packagePath: string, packageJson: Package
   const { name, dependencies = {}, devDependencies = {}, peerDependencies = {}, peerDevDependencies = [] } = packageJson;
 
   const applyPeerDevDependencies= (dep: Dependency): Dependency =>
-      ({ ...dep, isPeerDevDependency: peerDevDependencies.includes(dep.name) });
+      ({ ...dep, isPeerDevDependency: peerDevDependencies.includes && peerDevDependencies.includes(dep.name) });
 
   return {
     packageName: name,
