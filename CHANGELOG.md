@@ -1,3 +1,19 @@
+## 2.0.2 (2020-05-25)
+[Compare `check-peer-dependencies` versions 2.0.1 and 2.0.2](https://github.com/christopherthielen/check-peer-dependencies/compare/2.0.1...2.0.2)
+
+### Bug Fixes
+
+* **peerDevDependencies:** Make peerDevDependency includes check a bit safer ([2a1a183](https://github.com/christopherthielen/check-peer-dependencies/commit/2a1a183))
+* **walkPackageDependency:** only walk dev deps for the root package ([e69c385](https://github.com/christopherthielen/check-peer-dependencies/commit/e69c385))
+
+
+### Features
+
+* **walkPackageDependencyTree:** Check devDependencies too ([9eba197](https://github.com/christopherthielen/check-peer-dependencies/commit/9eba197))
+
+
+
+
 ## 2.0.1 (2020-04-10)
 [Compare `check-peer-dependencies` versions 2.0.0 and 2.0.1](https://github.com/christopherthielen/check-peer-dependencies/compare/2.0.0...2.0.1)
 
