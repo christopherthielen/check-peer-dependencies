@@ -62,6 +62,8 @@ export function gatherPeerDependencies(packagePath, options: CliOptions): Depend
 }
 
 export function walkPackageDependencyTree(packagePath: string, visitor: DependencyWalkVisitor, visitedPaths: string[], options: CliOptions) {
+  const isRootPackage = visitedPaths.length === 0;
+
   if (visitedPaths.includes(packagePath)) {
     return;
   }
@@ -95,7 +97,7 @@ export function walkPackageDependencyTree(packagePath: string, visitor: Dependen
   }
 
   packageDependencies.dependencies.forEach(walkDependency);
-  packageDependencies.devDependencies.forEach(walkDependency);
+  if (isRootPackage) packageDependencies.devDependencies.forEach(walkDependency);
 }
 
 function buildDependencyArray(packagePath: string, packageJson: PackageJson, dependenciesObject: any): Dependency[] {
