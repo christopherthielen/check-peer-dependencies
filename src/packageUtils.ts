@@ -92,6 +92,8 @@ export function walkPackageDependencyTree(packagePath: string, visitor: Dependen
     const dependencyPath = resolvePackageDir(packagePath, dependency.name);
     if (dependencyPath) {
       walkPackageDependencyTree(dependencyPath, visitor, visitedPaths, options);
+    } else {
+      console.log(`WARN: Unable to resolve package ${dependency.name} from ${packagePath}`)
     }
   }
 
