@@ -90,10 +90,9 @@ export function walkPackageDependencyTree(packagePath: string, visitor: Dependen
     }
 
     const dependencyPath = resolvePackageDir(packagePath, dependency.name);
-    if (!dependencyPath) {
-      throw new Error(`Unable to resolve package ${dependency.name} from ${packagePath}`)
+    if (dependencyPath) {
+      walkPackageDependencyTree(dependencyPath, visitor, visitedPaths, options);
     }
-    walkPackageDependencyTree(dependencyPath, visitor, visitedPaths, options);
   }
 
   packageDependencies.dependencies.forEach(walkDependency);
