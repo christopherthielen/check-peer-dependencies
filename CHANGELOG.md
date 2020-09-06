@@ -1,3 +1,14 @@
+## 2.0.3 (2020-09-06)
+[Compare `check-peer-dependencies` versions 2.0.2 and 2.0.3](https://github.com/christopherthielen/check-peer-dependencies/compare/2.0.2...2.0.3)
+
+### Bug Fixes
+
+* print warning if dependency path is not found instead of erroring. This allows optional dependencies to be ignored. ([37c0296](https://github.com/christopherthielen/check-peer-dependencies/commit/37c0296))
+  
+
+
+
+
 ## 2.0.2 (2020-05-25)
 [Compare `check-peer-dependencies` versions 2.0.1 and 2.0.2](https://github.com/christopherthielen/check-peer-dependencies/compare/2.0.1...2.0.2)
 
