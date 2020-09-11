@@ -97,8 +97,10 @@ export function walkPackageDependencyTree(packagePath: string, visitor: Dependen
     }
   }
 
-  packageDependencies.dependencies.forEach(walkDependency);
-  if (isRootPackage) packageDependencies.devDependencies.forEach(walkDependency);
+  if (isRootPackage) {
+    packageDependencies.dependencies.forEach(walkDependency);
+    packageDependencies.devDependencies.forEach(walkDependency);
+  }
 }
 
 function buildDependencyArray(packagePath: string, packageJson: PackageJson, dependenciesObject: any): Dependency[] {
