@@ -33,6 +33,11 @@ const options = yarrrrgs
       default: false,
       description: 'Prints every peer dependency, even those that are met',
     })
+    .option('runOnlyOnRootDepedencies', {
+        boolean: true,
+        default: false,
+        description: 'Run tool only on package root dependencies',
+    })
     .option('install', {
       boolean: true,
       default: false,
