@@ -97,16 +97,8 @@ export function walkPackageDependencyTree(packagePath: string, visitor: Dependen
     }
   }
   
-  if (!options.runOnlyOnRootDepedencies) {
-    packageDependencies.dependencies.forEach(walkDependency);
-    if (isRootPackage) packageDependencies.devDependencies.forEach(walkDependency);
-  }
-  if (options.runOnlyOnRootDepedencies) {
-      if (isRootPackage) {
-	 packageDependencies.dependencies.forEach(walkDependency);
-         packageDependencies.devDependencies.forEach(walkDependency);
-      }
-   }
+ if (isRootPackage) packageDependencies.devDependencies.forEach(walkDependency);
+ if ((isRootPackage) || (!options.runOnlyOnRootDependencies)) packageDependencies.dependencies.forEach(walkDependency)
 }
 
 function buildDependencyArray(packagePath: string, packageJson: PackageJson, dependenciesObject: any): Dependency[] {
