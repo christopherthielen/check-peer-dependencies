@@ -96,9 +96,9 @@ export function walkPackageDependencyTree(packagePath: string, visitor: Dependen
       console.log(`WARN: Unable to resolve package ${dependency.name} from ${packagePath}`)
     }
   }
-
-  packageDependencies.dependencies.forEach(walkDependency);
-  if (isRootPackage) packageDependencies.devDependencies.forEach(walkDependency);
+  
+ if (isRootPackage) packageDependencies.devDependencies.forEach(walkDependency);
+ if ((isRootPackage) || (!options.runOnlyOnRootDependencies)) packageDependencies.dependencies.forEach(walkDependency)
 }
 
 function buildDependencyArray(packagePath: string, packageJson: PackageJson, dependenciesObject: any): Dependency[] {
