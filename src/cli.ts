@@ -56,6 +56,7 @@ export interface CliOptions {
   verbose: boolean;
   debug: boolean;
   npm: boolean;
+  runOnlyOnRootDependencies: boolean;
   orderBy: 'depender' | 'dependee';
   install: boolean;
 }
