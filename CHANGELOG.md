@@ -1,3 +1,13 @@
+## 2.0.4 (2020-09-19)
+[Compare `check-peer-dependencies` versions 2.0.3 and 2.0.4](https://github.com/christopherthielen/check-peer-dependencies/compare/2.0.3...2.0.4)
+
+### Features
+
+* Add an option to run tool in consumer package root dependencies only.  ([#7](https://github.com/christopherthielen/check-peer-dependencies/issues/7)) ([cd8f75a](https://github.com/christopherthielen/check-peer-dependencies/commit/cd8f75a))
+
+
+
+
 ## 2.0.3 (2020-09-06)
 [Compare `check-peer-dependencies` versions 2.0.2 and 2.0.3](https://github.com/christopherthielen/check-peer-dependencies/compare/2.0.2...2.0.3)
 
