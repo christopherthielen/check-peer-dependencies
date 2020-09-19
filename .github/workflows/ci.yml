@@ -1,0 +1,25 @@
+name: 'CI'
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  ci:
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - run: true
+  test:
+    name: yarn buildd
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Dependencies
+        run: yarn install --pure-lockfile
+      - name: Check Peer Dependencies
+        run: npx check-peer-dependencies
+      - name: Run Tests
+        run: yarn build
