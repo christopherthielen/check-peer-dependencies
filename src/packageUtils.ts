@@ -16,6 +16,9 @@ interface PackageJson {
   peerDependencies: {
     [key: string]: string;
   };
+  optionalDependencies: {
+    [key: string]: string;
+  };
 
   // What is a peerDevDependency? This is not a standard.
   // This is an array of package names found in `peerDependencies` which should be installed as devDependencies.
@@ -43,6 +46,7 @@ interface PackageDependencies {
   dependencies: Dependency[];
   devDependencies: Dependency[];
   peerDependencies: Dependency[];
+  optionalDependencies: Dependency[];
   peerDevDependencies: string[];
 }
 
@@ -90,15 +94,24 @@ export function walkPackageDependencyTree(packagePath: string, visitor: Dependen
     }
 
     const dependencyPath = resolvePackageDir(packagePath, dependency.name);
-    if (dependencyPath) {
-      walkPackageDependencyTree(dependencyPath, visitor, visitedPaths, options);
-    } else {
-      console.log(`WARN: Unable to resolve package ${dependency.name} from ${packagePath}`)
+
+    if (!dependencyPath) {
+      if (packageDependencies.optionalDependencies.some(x => x.name === dependency.name)) {
+        // don't fail if the missing dependency is in optionalDependencies
+        if (options.debug) {
+          console.log(`Ignoring missing optional dependency ${dependency.name} from ${packagePath}`);
+        }
+        return;
+      } else {
+        throw new Error(`WARN: Unable to resolve package ${dependency.name} from ${packagePath}`)
+      }
     }
+
+    walkPackageDependencyTree(dependencyPath, visitor, visitedPaths, options);
   }
-  
- if (isRootPackage) packageDependencies.devDependencies.forEach(walkDependency);
- if ((isRootPackage) || (!options.runOnlyOnRootDependencies)) packageDependencies.dependencies.forEach(walkDependency)
+
+  if (isRootPackage) packageDependencies.devDependencies.forEach(walkDependency);
+  if (isRootPackage || !options.runOnlyOnRootDependencies) packageDependencies.dependencies.forEach(walkDependency)
 }
 
 function buildDependencyArray(packagePath: string, packageJson: PackageJson, dependenciesObject: any): Dependency[] {
@@ -112,15 +125,23 @@ function buildDependencyArray(packagePath: string, packageJson: PackageJson, dep
 }
 
 export function getPackageDependencies(packagePath: string, packageJson: PackageJson): PackageDependencies {
-  const { name, dependencies = {}, devDependencies = {}, peerDependencies = {}, peerDevDependencies = [] } = packageJson;
+  const {
+    name,
+    dependencies = {},
+    devDependencies = {},
+    optionalDependencies = {},
+    peerDependencies = {},
+    peerDevDependencies = []
+  } = packageJson;
 
-  const applyPeerDevDependencies= (dep: Dependency): Dependency =>
+  const applyPeerDevDependencies = (dep: Dependency): Dependency =>
       ({ ...dep, isPeerDevDependency: peerDevDependencies.includes && peerDevDependencies.includes(dep.name) });
 
   return {
     packageName: name,
     dependencies: buildDependencyArray(packagePath, packageJson, dependencies),
     devDependencies: buildDependencyArray(packagePath, packageJson, devDependencies),
+    optionalDependencies: buildDependencyArray(packagePath, packageJson, optionalDependencies),
     peerDependencies: buildDependencyArray(packagePath, packageJson, peerDependencies).map(applyPeerDevDependencies),
     peerDevDependencies,
   };
