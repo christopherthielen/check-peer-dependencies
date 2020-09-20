@@ -1,3 +1,13 @@
+## 2.0.6 (2020-09-20)
+[Compare `check-peer-dependencies` versions 2.0.5 and 2.0.6](https://github.com/christopherthielen/check-peer-dependencies/compare/2.0.5...2.0.6)
+
+### Bug Fixes
+
+* Ignore missing optionalDependencies ([25a89a7](https://github.com/christopherthielen/check-peer-dependencies/commit/25a89a7))
+
+
+
+
 ## 2.0.5 (2020-09-19)
 [Compare `check-peer-dependencies` versions 2.0.3 and 2.0.5](https://github.com/christopherthielen/check-peer-dependencies/compare/2.0.3...2.0.5)
 
