@@ -20,7 +20,7 @@ const options = yarrrrgs
     })
     .option('orderBy', {
       choices: ['depender', 'dependee'],
-      default: 'depender',
+      default: 'dependee',
       description: 'Order the output by depender or dependee',
     })
     .option('debug', {
