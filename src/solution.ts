@@ -33,6 +33,7 @@ export function findPossibleResolutions(problems: Dependency[], allPeerDependenc
 
 function findPossibleResolution(packageName, allPeerDeps) {
   const requiredPeerVersions = allPeerDeps.filter(dep => dep.name === packageName);
+  // todo: skip this step if only one required peer version and it's an exact version
   const command = `npm view ${packageName} versions`;
   let rawVersionsInfo;
   try {

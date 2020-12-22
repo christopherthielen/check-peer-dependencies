@@ -51,24 +51,8 @@ const reportPeerDependencyStatusByDependee = (dep: Dependency, options: CliOptio
   }
 };
 
-export function checkPeerDependencies(packageManager: string, options: CliOptions) {
-  const allNestedPeerDependencies = getAllNestedPeerDependencies(options);
 
-  if (options.orderBy === 'depender') {
-    allNestedPeerDependencies.sort((a, b) => `${a.depender}${a.name}`.localeCompare(`${b.depender}${b.name}`));
-    allNestedPeerDependencies.forEach(dep => reportPeerDependencyStatusByDepender(dep, options));
-  } else if (options.orderBy === 'dependee') {
-    allNestedPeerDependencies.sort((a, b) => `${a.name}${a.depender}`.localeCompare(`${b.name}${b.depender}`));
-    allNestedPeerDependencies.forEach(dep => reportPeerDependencyStatusByDependee(dep, options));
-  }
-
-  const problems = allNestedPeerDependencies.filter(dep => !dep.semverSatisfies && !dep.isYalc);
-
-  if (!problems.length) {
-    console.log('  ✅  All peer dependencies are met');
-    return;
-  }
-
+function findSolutions(problems: Dependency[], allNestedPeerDependencies: Dependency[]) {
   console.log();
   console.log('Searching for solutions...');
   console.log();
@@ -89,40 +73,76 @@ export function checkPeerDependencies(packageManager: string, options: CliOption
     console.error();
   }
 
-  const commandLines = getCommandLines(packageManager, resolutionsWithSolutions);
-  if (options.install && commandLines.length > 0) {
-    console.log('Installing peerDependencies...');
+  return { resolutionsWithSolutions, nosolution };
+}
+
+function installPeerDependencies(commandLines: any[], options: CliOptions, nosolution: Resolution[], packageManager: string) {
+  console.log('Installing peerDependencies...');
+  console.log();
+  commandLines.forEach(command => {
+    console.log(`$ ${command}`);
+    exec(command);
     console.log();
-    commandLines.forEach(command => {
-      console.log(`$ ${command}`);
-      exec(command);
-      console.log();
-    });
+  });
 
-    const newUnsatisfiedDeps = getAllNestedPeerDependencies(options)
-        .filter(dep => !dep.semverSatisfies)
-        .filter(dep => !nosolution.some(x => isSameDep(x.problem, dep)));
+  const newUnsatisfiedDeps = getAllNestedPeerDependencies(options)
+      .filter(dep => !dep.semverSatisfies)
+      .filter(dep => !nosolution.some(x => isSameDep(x.problem, dep)));
 
-    if (nosolution.length === 0 && newUnsatisfiedDeps.length === 0) {
-      console.log('All peer dependencies are met');
-    }
-
-    if (newUnsatisfiedDeps.length > 0) {
-      console.log(`Found ${newUnsatisfiedDeps.length} new unmet peerDependencies...`);
-      if (++recursiveCount < 5) {
-        return checkPeerDependencies(packageManager, options);
-      } else {
-        console.error('Recursion limit reached (5)');
-        process.exit(5)
-      }
-    }
-    return;
-
-  } else if (commandLines.length > 0) {
-    console.log(`Install peerDependencies using ${commandLines.length > 1 ? 'these commands:' : 'this command'}:`);
-    console.log();
-    commandLines.forEach(command => console.log(command));
-    console.log();
+  if (nosolution.length === 0 && newUnsatisfiedDeps.length === 0) {
+    console.log('All peer dependencies are met');
   }
+
+  if (newUnsatisfiedDeps.length > 0) {
+    console.log(`Found ${newUnsatisfiedDeps.length} new unmet peerDependencies...`);
+    if (++recursiveCount < 5) {
+      return checkPeerDependencies(packageManager, options);
+    } else {
+      console.error('Recursion limit reached (5)');
+      process.exit(5)
+    }
+  }
+  return;
+}
+
+export function checkPeerDependencies(packageManager: string, options: CliOptions) {
+  const allNestedPeerDependencies = getAllNestedPeerDependencies(options);
+
+  if (options.orderBy === 'depender') {
+    allNestedPeerDependencies.sort((a, b) => `${a.depender}${a.name}`.localeCompare(`${b.depender}${b.name}`));
+    allNestedPeerDependencies.forEach(dep => reportPeerDependencyStatusByDepender(dep, options));
+  } else if (options.orderBy === 'dependee') {
+    allNestedPeerDependencies.sort((a, b) => `${a.name}${a.depender}`.localeCompare(`${b.name}${b.depender}`));
+    allNestedPeerDependencies.forEach(dep => reportPeerDependencyStatusByDependee(dep, options));
+  }
+
+  const problems = allNestedPeerDependencies.filter(dep => !dep.semverSatisfies && !dep.isYalc);
+
+  if (!problems.length) {
+    console.log('  ✅  All peer dependencies are met');
+    return;
+  }
+
+  if (options.install) {
+    const { nosolution, resolutionsWithSolutions } = findSolutions(problems, allNestedPeerDependencies);
+    const commandLines = getCommandLines(packageManager, resolutionsWithSolutions);
+
+    if (commandLines.length) {
+      return installPeerDependencies(commandLines, options, nosolution, packageManager);
+    }
+  } else if (options.findSolutions) {
+    const { resolutionsWithSolutions } = findSolutions(problems, allNestedPeerDependencies);
+    const commandLines = getCommandLines(packageManager, resolutionsWithSolutions);
+
+    if (commandLines.length) {
+      console.log(`Install peerDependencies using ${commandLines.length > 1 ? 'these commands:' : 'this command'}:`);
+      console.log();
+      commandLines.forEach(command => console.log(command));
+      console.log();
+    }
+  } else {
+    console.log(`Install peerDependencies using "npx check-peer-dependencies --install"`);
+  }
+
   process.exit(1);
 }

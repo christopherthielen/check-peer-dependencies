@@ -38,6 +38,11 @@ const options = yarrrrgs
         default: false,
         description: 'Run tool only on package root dependencies',
     })
+    .option('findSolutions', {
+      boolean: true,
+      default: false,
+      description: 'Search for solutions and print package installation commands',
+    })
     .option('install', {
       boolean: true,
       default: false,
@@ -58,6 +63,7 @@ export interface CliOptions {
   npm: boolean;
   runOnlyOnRootDependencies: boolean;
   orderBy: 'depender' | 'dependee';
+  findSolutions: boolean;
   install: boolean;
 }
 
