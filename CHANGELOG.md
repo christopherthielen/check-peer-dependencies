@@ -1,3 +1,21 @@
+# 3.0.0 (2020-12-22)
+[Compare `check-peer-dependencies` versions 2.0.6 and 3.0.0](https://github.com/christopherthielen/check-peer-dependencies/compare/2.0.6...3.0.0)
+
+### Features
+
+* **findSolutions:** Add a toggle to find solutions and print installation commands. ([c34735a](https://github.com/christopherthielen/check-peer-dependencies/commit/c34735a))
+* **orderBy:** Change default orderBy to 'dependee' ([e77e069](https://github.com/christopherthielen/check-peer-dependencies/commit/e77e069))
+* **report:** For a given unmet peer dependency, show every related peer dependency, even if currently met ([516a259](https://github.com/christopherthielen/check-peer-dependencies/commit/516a259))
+
+
+### BREAKING CHANGES
+
+* **orderBy:** default order changed from 'depender' to 'dependee'
+* **findSolutions:** no longer prints installation commands by default, instead prints a message about using --install
+
+
+
+
 ## 2.0.6 (2020-09-20)
 [Compare `check-peer-dependencies` versions 2.0.5 and 2.0.6](https://github.com/christopherthielen/check-peer-dependencies/compare/2.0.5...2.0.6)
 
