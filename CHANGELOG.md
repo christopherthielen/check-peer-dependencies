@@ -1,3 +1,13 @@
+# 3.1.0 (2020-12-23)
+[Compare `check-peer-dependencies` versions 3.0.0 and 3.1.0](https://github.com/christopherthielen/check-peer-dependencies/compare/3.0.0...3.1.0)
+
+### Features
+
+* **peerDependencyMeta:** support peerDependencyMeta in package.json to ignore optional peer dependencies ([4e3b757](https://github.com/christopherthielen/check-peer-dependencies/commit/4e3b757))
+  * See: https://github.com/yarnpkg/rfcs/blob/master/accepted/0000-optional-peer-dependencies.md
+
+
+
 # 3.0.0 (2020-12-22)
 [Compare `check-peer-dependencies` versions 2.0.6 and 3.0.0](https://github.com/christopherthielen/check-peer-dependencies/compare/2.0.6...3.0.0)
 
