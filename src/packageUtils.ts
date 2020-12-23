@@ -16,41 +16,44 @@ interface PackageJson {
   peerDependencies: {
     [key: string]: string;
   };
+  // deprecated: use peerDependenciesMeta.foo.dev
+  peerDevDependencies: string[];
+  // See: https://github.com/yarnpkg/rfcs/blob/master/accepted/0000-optional-peer-dependencies.md
+  peerDependenciesMeta: {
+    [key: string]: {
+      optional?: boolean;
+      // non-standard
+      dev?: boolean;
+    };
+  };
   optionalDependencies: {
     [key: string]: string;
   };
-
-  // What is a peerDevDependency? This is not a standard.
-  // This is an array of package names found in `peerDependencies` which should be installed as devDependencies.
-  // This addresses a specific use case: to provide downstream projects with package building opinions such as
-  // a specific version of react and rollup and typescript.
-  // Example:
-  // peerDevDependencies: ["rollup", "typescript"]
-  peerDevDependencies: string[];
 }
 
 export interface Dependency {
   name: string;
   version: string;
-  depender: string;
-  dependerPath: string;
-  dependerVersion: string;
+  depender: PackageMeta;
+  type: 'dependencies' | 'devDependencies' | 'peerDependencies' | 'optionalDependencies';
+  isPeerOptionalDependency: boolean;
+  isPeerDevDependency: boolean;
   installedVersion?: string | undefined;
   semverSatisfies?: boolean;
   isYalc?: boolean;
-  isPeerDevDependency?: boolean;
 }
 
-interface PackageDependencies {
-  packageName: string;
+interface PackageMeta {
+  name: string;
+  version: string;
+  packagePath: string;
   dependencies: Dependency[];
   devDependencies: Dependency[];
-  peerDependencies: Dependency[];
   optionalDependencies: Dependency[];
-  peerDevDependencies: string[];
+  peerDependencies: Dependency[];
 }
 
-type DependencyWalkVisitor = (packagePath: string, packageJson: PackageJson, packageDependencies: PackageDependencies) => void;
+type DependencyWalkVisitor = (packagePath: string, packageJson: PackageJson, packageMeta: PackageMeta) => void;
 
 export function gatherPeerDependencies(packagePath, options: CliOptions): Dependency[] {
   let peerDeps: Dependency[] = [];
@@ -80,7 +83,7 @@ export function walkPackageDependencyTree(packagePath: string, visitor: Dependen
   }
 
   const packageJson = readJson(packageJsonPath) as PackageJson;
-  const packageDependencies = getPackageDependencies(packagePath, packageJson);
+  const packageDependencies = getPackageMeta(packagePath, packageJson);
 
   if (options.debug) {
     console.log(packageJsonPath);
@@ -114,37 +117,39 @@ export function walkPackageDependencyTree(packagePath: string, visitor: Dependen
   if (isRootPackage || !options.runOnlyOnRootDependencies) packageDependencies.dependencies.forEach(walkDependency)
 }
 
-function buildDependencyArray(packagePath: string, packageJson: PackageJson, dependenciesObject: any): Dependency[] {
-  return Object.keys(dependenciesObject).map(name => ({
-    name: name,
-    version: dependenciesObject[name],
-    depender: packageJson.name,
-    dependerVersion: packageJson.version,
-    dependerPath: packagePath,
-  }));
+function buildDependencyArray(type: Dependency["type"], pkgJson: PackageJson, depender: PackageMeta): Dependency[] {
+  const dependenciesObject = pkgJson[type] || {};
+  const peerDependenciesMeta = pkgJson.peerDependenciesMeta || {};
+  // backwards compat
+  const peerDevDependencies = pkgJson.peerDevDependencies || [];
+
+  const packageNames = Object.keys(dependenciesObject);
+
+  return packageNames.map(name => {
+    const isPeerOptionalDependency= !!peerDependenciesMeta[name]?.optional;
+    const isPeerDevDependency = !!peerDependenciesMeta[name]?.dev || !!peerDevDependencies.includes(name);
+
+    return {
+      name,
+      type,
+      version: dependenciesObject[name],
+      isPeerDevDependency,
+      isPeerOptionalDependency,
+      depender,
+    };
+  });
 }
 
-export function getPackageDependencies(packagePath: string, packageJson: PackageJson): PackageDependencies {
-  const {
-    name,
-    dependencies = {},
-    devDependencies = {},
-    optionalDependencies = {},
-    peerDependencies = {},
-    peerDevDependencies = []
-  } = packageJson;
+export function getPackageMeta(packagePath: string, packageJson: PackageJson): PackageMeta {
+  const { name, version} = packageJson;
+  const packageMeta = { name, version, packagePath } as PackageMeta;
 
-  const applyPeerDevDependencies = (dep: Dependency): Dependency =>
-      ({ ...dep, isPeerDevDependency: peerDevDependencies.includes && peerDevDependencies.includes(dep.name) });
+  packageMeta.dependencies = buildDependencyArray("dependencies", packageJson, packageMeta);
+  packageMeta.devDependencies = buildDependencyArray("devDependencies", packageJson, packageMeta);
+  packageMeta.optionalDependencies = buildDependencyArray("optionalDependencies", packageJson, packageMeta);
+  packageMeta.peerDependencies = buildDependencyArray("peerDependencies", packageJson, packageMeta);
 
-  return {
-    packageName: name,
-    dependencies: buildDependencyArray(packagePath, packageJson, dependencies),
-    devDependencies: buildDependencyArray(packagePath, packageJson, devDependencies),
-    optionalDependencies: buildDependencyArray(packagePath, packageJson, optionalDependencies),
-    peerDependencies: buildDependencyArray(packagePath, packageJson, peerDependencies).map(applyPeerDevDependencies),
-    peerDevDependencies,
-  };
+  return packageMeta;
 }
 
 export function resolvePackageDir(basedir: string, packageName: string) {
@@ -181,17 +186,9 @@ export function getInstalledVersion(dep: Dependency): string | undefined {
 
 
 export function isSameDep(a: Dependency, b: Dependency) {
-  const keys: Array<keyof Dependency> = [
-    "name",
-    "version",
-    "depender",
-    "dependerPath",
-    "dependerVersion",
-    "installedVersion",
-    "semverSatisfies",
-    "isYalc",
-    "isPeerDevDependency",
-  ];
-
-  return keys.every(key => a[key] === b[key]);
+  const keys: Array<keyof Dependency> = [ "name", "version", "installedVersion", "semverSatisfies", "isYalc", "isPeerDevDependency", ];
+  return keys.every(key => a[key] === b[key]) &&
+      a.depender.name === b.depender.name &&
+      a.depender.version === b.depender.version &&
+      a.depender.packagePath === b.depender.packagePath;
 }
