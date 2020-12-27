@@ -12,7 +12,7 @@ function getAllNestedPeerDependencies(options: CliOptions): Dependency[] {
 
   function applySemverInformation(dep: Dependency): Dependency {
     const installedVersion = getInstalledVersion(dep);
-    const semverSatisfies = installedVersion ? semver.satisfies(installedVersion, dep.version) : false;
+    const semverSatisfies = installedVersion ? semver.satisfies(installedVersion, dep.version, { includePrerelease: true }) : false;
     const isYalc = !!/-[a-f0-9]+-yalc$/.exec(installedVersion);
 
     return { ...dep, installedVersion, semverSatisfies, isYalc };
