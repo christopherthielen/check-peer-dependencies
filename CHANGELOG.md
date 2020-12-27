@@ -1,3 +1,18 @@
+# 4.0.0 (2020-12-27)
+[Compare `check-peer-dependencies` versions 3.1.0 and 4.0.0](https://github.com/christopherthielen/check-peer-dependencies/compare/3.1.0...4.0.0)
+
+### Features
+
+* **prerelease:** include prerelease when  matching ranges, i.e. the range ">=6.0.0" matches "7.0.0-beta.1" ([0493379](https://github.com/christopherthielen/check-peer-dependencies/commit/0493379))
+
+
+### BREAKING CHANGES
+
+* **prerelease:** Matches prerelease versions
+
+
+
+
 # 3.1.0 (2020-12-23)
 [Compare `check-peer-dependencies` versions 3.0.0 and 3.1.0](https://github.com/christopherthielen/check-peer-dependencies/compare/3.0.0...3.1.0)
 
