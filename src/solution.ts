@@ -39,7 +39,9 @@ function findPossibleResolution(packageName, allPeerDeps) {
   try {
     rawVersionsInfo = exec(command, { silent: true }).stdout;
     const availableVersions = JSON.parse(rawVersionsInfo.replace(/'/g, '"')).sort(semverReverseSort);
-    return availableVersions.find(ver => requiredPeerVersions.every(peerVer => semver.satisfies(ver, peerVer.version)));
+    return availableVersions.find(ver => requiredPeerVersions.every(peerVer => {
+      return semver.satisfies(ver, peerVer.version, { includePrerelease: true });
+    }));
   } catch (err) {
     console.error(`Error while running command: '${command}'`);
     console.error(err);
