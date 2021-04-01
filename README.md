@@ -17,11 +17,23 @@ npx check-peer-dependencies [--yarn|--npm] [--install] [--help]
 
 Options:
 ```
-  --help, -h  Print usage information                                  [boolean]
-  --version   Show version number                                      [boolean]
-  --yarn      Use yarn package manager                                 [boolean]
-  --npm       Use npm package manager                                  [boolean]
-  --install   Install missing or incorrect peerDependencies            [boolean]
+  -h, --help                       Print usage information             [boolean]
+      --version                    Show version number                 [boolean]
+      --yarn                       Force yarn package manager          [boolean]
+      --npm                        Force npm package manager           [boolean]
+      --orderBy                    Order the output by depender or dependee
+                         [choices: "depender", "dependee"] [default: "dependee"]
+      --debug                      Print debugging information
+                                                      [boolean] [default: false]
+      --verbose                    Prints every peer dependency, even those that
+                                   are met            [boolean] [default: false]
+      --runOnlyOnRootDependencies  Run tool only on package root dependencies
+                                                      [boolean] [default: false]
+      --findSolutions              Search for solutions and print package
+                                   installation commands
+                                                      [boolean] [default: false]
+      --install                    Install missing or incorrect peerDependencies
+                                                      [boolean] [default: false]
 ```
 
 ---
