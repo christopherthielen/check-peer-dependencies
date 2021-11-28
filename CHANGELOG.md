@@ -1,3 +1,14 @@
+# 4.1.0 (2021-11-28)
+[Compare `check-peer-dependencies` versions 4.0.0 and 4.1.0](https://github.com/christopherthielen/check-peer-dependencies/compare/4.0.0...4.1.0)
+
+### Features
+
+* Add support for ignoring peer dependencies (via cli option or config stored in package.json) ([5994c9c](https://github.com/christopherthielen/check-peer-dependencies/commit/5994c9c))
+* load checkPeerDependencies config from package.json (and merge with CLI options) ([e2f0fee](https://github.com/christopherthielen/check-peer-dependencies/commit/e2f0fee))
+
+
+
+
 # 4.0.0 (2020-12-27)
 [Compare `check-peer-dependencies` versions 3.1.0 and 4.0.0](https://github.com/christopherthielen/check-peer-dependencies/compare/3.1.0...4.0.0)
 
