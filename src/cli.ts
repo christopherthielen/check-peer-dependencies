@@ -5,6 +5,8 @@ import { checkPeerDependencies } from './checkPeerDependencies';
 import { getPackageManager } from './packageManager';
 
 const options = yarrrrgs
+    .pkgConf('checkPeerDependencies')
+    .usage('Options may also be stored in package.json under the "checkPeerDependencies" key')
     .option('help', {
       alias: 'h',
       boolean: true,
