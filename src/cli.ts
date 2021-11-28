@@ -35,6 +35,12 @@ const options = yarrrrgs
       default: false,
       description: 'Prints every peer dependency, even those that are met',
     })
+    .option('ignore', {
+      string:  true,
+      array: true,
+      default: [],
+      description: 'package name to ignore (may specify multiple)',
+    })
     .option('runOnlyOnRootDependencies', {
         boolean: true,
         default: false,
@@ -63,6 +69,7 @@ export interface CliOptions {
   verbose: boolean;
   debug: boolean;
   npm: boolean;
+  ignore: string[];
   runOnlyOnRootDependencies: boolean;
   orderBy: 'depender' | 'dependee';
   findSolutions: boolean;

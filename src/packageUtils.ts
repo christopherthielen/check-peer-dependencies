@@ -41,6 +41,7 @@ export interface Dependency {
   installedVersion?: string | undefined;
   semverSatisfies?: boolean;
   isYalc?: boolean;
+  isIgnored?: boolean;
 }
 
 interface PackageMeta {
@@ -183,7 +184,6 @@ export function getInstalledVersion(dep: Dependency): string | undefined {
   const isYalc = fs.existsSync(path.resolve(peerDependencyDir, 'yalc.sig'));
   return isYalc ? `${packageJson.version}-yalc` : packageJson.version;
 }
-
 
 export function isSameDep(a: Dependency, b: Dependency) {
   const keys: Array<keyof Dependency> = [ "name", "version", "installedVersion", "semverSatisfies", "isYalc", "isPeerDevDependency", ];

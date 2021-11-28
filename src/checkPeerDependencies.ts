@@ -18,12 +18,19 @@ function getAllNestedPeerDependencies(options: CliOptions): Dependency[] {
     return { ...dep, installedVersion, semverSatisfies, isYalc };
   }
 
-  return gatheredDependencies.map(applySemverInformation);
+  function applyIgnoreInformation (dep: Dependency): Dependency {
+    const isIgnored = options.ignore.includes(dep.name)
+    return {...dep, isIgnored}
+  }
+
+  return gatheredDependencies.map(applySemverInformation).map(applyIgnoreInformation);
 }
 
 let recursiveCount = 0;
 
-const reportPeerDependencyStatus = (dep: Dependency, byDepender: boolean, showSatisfiedDep: boolean, showOptionalDep: boolean) => {
+const  isProblem = (dep: Dependency) => !dep.semverSatisfies && !dep.isIgnored && !dep.isYalc && !dep.isPeerOptionalDependency;
+
+const reportPeerDependencyStatus = (dep: Dependency, byDepender: boolean, showSatisfiedDep: boolean, verbose: boolean) => {
   const message = byDepender ?
       `${dep.depender.name}@${dep.depender.version} requires ${dep.name} ${dep.version}` :
       `${dep.name} ${dep.version} is required by ${dep.depender.name}@${dep.depender.version}`;
@@ -35,14 +42,18 @@ const reportPeerDependencyStatus = (dep: Dependency, byDepender: boolean, showSa
   } else if (dep.isYalc) {
     console.log(`  ☑️  ${message} (${dep.installedVersion} is installed via yalc)`);
   } else if (dep.installedVersion && dep.isPeerOptionalDependency) {
-    if (showOptionalDep) {
-      console.log(`  ☑️  ${message}) OPTIONAL (${dep.installedVersion} is installed)`);
+    if (verbose) {
+      console.log(`  ☑️   ${message}) OPTIONAL (${dep.installedVersion} is installed)`);
+    }
+  } else if (dep.isIgnored) {
+    if (verbose) {
+      console.log(`  ☑️   ${message} IGNORED (${dep.name} is not installed)`);
     }
   } else if (dep.installedVersion) {
     console.log(`  ❌  ${message}) (${dep.installedVersion} is installed)`);
   } else if (dep.isPeerOptionalDependency) {
-    if (showOptionalDep) {
-      console.log(`  ☑️  ${message} OPTIONAL (${dep.name} is not installed)`);
+    if (verbose) {
+      console.log(`  ☑️   ${message} OPTIONAL (${dep.name} is not installed)`);
     }
   } else {
     console.log(`  ❌  ${message} (${dep.name} is not installed)`);
@@ -82,16 +93,16 @@ function installPeerDependencies(commandLines: any[], options: CliOptions, nosol
     console.log();
   });
 
-  const newUnsatisfiedDeps = getAllNestedPeerDependencies(options)
-      .filter(dep => !dep.semverSatisfies)
+  const newProblems = getAllNestedPeerDependencies(options)
+      .filter(dep => isProblem(dep))
       .filter(dep => !nosolution.some(x => isSameDep(x.problem, dep)));
 
-  if (nosolution.length === 0 && newUnsatisfiedDeps.length === 0) {
+  if (nosolution.length === 0 && newProblems.length === 0) {
     console.log('All peer dependencies are met');
   }
 
-  if (newUnsatisfiedDeps.length > 0) {
-    console.log(`Found ${newUnsatisfiedDeps.length} new unmet peerDependencies...`);
+  if (newProblems.length > 0) {
+    console.log(`Found ${newProblems.length} new unmet peerDependencies...`);
     if (++recursiveCount < 5) {
       return checkPeerDependencies(packageManager, options);
     } else {
@@ -110,11 +121,9 @@ function report(options: CliOptions, allNestedPeerDependencies: Dependency[]) {
   }
 
   allNestedPeerDependencies.forEach(dep => {
-    const isUnsatisfied = (dep: Dependency) => !dep.semverSatisfies && !dep.isYalc;
     const relatedPeerDeps = allNestedPeerDependencies.filter(other => other.name === dep.name && other !== dep);
-    const showIfSatisfied = options.verbose || relatedPeerDeps.some(isUnsatisfied);
-    const showOptionalDep = options.verbose;
-    reportPeerDependencyStatus(dep, options.orderBy === 'depender', showIfSatisfied, showOptionalDep);
+    const showIfSatisfied = options.verbose || relatedPeerDeps.some(dep => isProblem(dep));
+    reportPeerDependencyStatus(dep, options.orderBy === 'depender', showIfSatisfied, options.verbose);
   });
 }
 
@@ -122,7 +131,7 @@ export function checkPeerDependencies(packageManager: string, options: CliOption
   const allNestedPeerDependencies = getAllNestedPeerDependencies(options);
   report(options, allNestedPeerDependencies);
 
-  const problems = allNestedPeerDependencies.filter(dep => !dep.semverSatisfies && !dep.isYalc && !dep.isPeerOptionalDependency);
+  const problems = allNestedPeerDependencies.filter(dep => isProblem(dep));
 
   if (!problems.length) {
     console.log('  ✅  All peer dependencies are met');
