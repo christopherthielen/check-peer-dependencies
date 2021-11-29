@@ -31,11 +31,13 @@ interface PackageJson {
   };
 }
 
+export type DependencyType = 'dependencies' | 'devDependencies' | 'peerDependencies' | 'optionalDependencies';
+
 export interface Dependency {
   name: string;
   version: string;
   depender: PackageMeta;
-  type: 'dependencies' | 'devDependencies' | 'peerDependencies' | 'optionalDependencies';
+  type: DependencyType
   isPeerOptionalDependency: boolean;
   isPeerDevDependency: boolean;
   installedVersion?: string | undefined;
@@ -61,7 +63,7 @@ export function gatherPeerDependencies(packagePath, options: CliOptions): Depend
   const visitor: DependencyWalkVisitor = (path, json, deps) => {
     peerDeps = peerDeps.concat(deps.peerDependencies);
   };
-  walkPackageDependencyTree(packagePath, visitor, [], options);
+  walkPackageDependencyTree(packagePath, false, visitor, [], options);
 
   // Eliminate duplicates
   return peerDeps.reduce((acc: Dependency[], dep: Dependency) => {
@@ -69,7 +71,7 @@ export function gatherPeerDependencies(packagePath, options: CliOptions): Depend
   }, [] as Dependency[]);
 }
 
-export function walkPackageDependencyTree(packagePath: string, visitor: DependencyWalkVisitor, visitedPaths: string[], options: CliOptions) {
+export function walkPackageDependencyTree(packagePath: string, isAncestorDevDependency: boolean, visitor: DependencyWalkVisitor, visitedPaths: string[], options: CliOptions) {
   const isRootPackage = visitedPaths.length === 0;
 
   if (visitedPaths.includes(packagePath)) {
@@ -84,15 +86,16 @@ export function walkPackageDependencyTree(packagePath: string, visitor: Dependen
   }
 
   const packageJson = readJson(packageJsonPath) as PackageJson;
-  const packageDependencies = getPackageMeta(packagePath, packageJson);
+  const packageDependencies = getPackageMeta(packagePath, packageJson, isAncestorDevDependency);
 
   if (options.debug) {
     console.log(packageJsonPath);
     packageDependencies.peerDependencies.forEach(dep => console.log(dep))
   }
+
   visitor(packagePath, packageJson, packageDependencies);
 
-  function walkDependency(dependency) {
+  function walkDependency(dependency: Dependency, isAncestorDevDependency: boolean) {
     if (resolve.isCore(dependency.name)) {
       return;
     }
@@ -111,14 +114,14 @@ export function walkPackageDependencyTree(packagePath: string, visitor: Dependen
       }
     }
 
-    walkPackageDependencyTree(dependencyPath, visitor, visitedPaths, options);
+    walkPackageDependencyTree(dependencyPath, isAncestorDevDependency, visitor, visitedPaths, options);
   }
 
-  if (isRootPackage) packageDependencies.devDependencies.forEach(walkDependency);
-  if (isRootPackage || !options.runOnlyOnRootDependencies) packageDependencies.dependencies.forEach(walkDependency)
+  if (isRootPackage) packageDependencies.devDependencies.forEach(dep => walkDependency(dep, true));
+  if (isRootPackage || !options.runOnlyOnRootDependencies) packageDependencies.dependencies.forEach(dep => walkDependency (dep, false));
 }
 
-function buildDependencyArray(type: Dependency["type"], pkgJson: PackageJson, depender: PackageMeta): Dependency[] {
+function buildDependencyArray(type: Dependency["type"], pkgJson: PackageJson, depender: PackageMeta, isAncestorDevDependency: boolean): Dependency[] {
   const dependenciesObject = pkgJson[type] || {};
   const peerDependenciesMeta = pkgJson.peerDependenciesMeta || {};
   // backwards compat
@@ -128,7 +131,7 @@ function buildDependencyArray(type: Dependency["type"], pkgJson: PackageJson, de
 
   return packageNames.map(name => {
     const isPeerOptionalDependency= !!peerDependenciesMeta[name]?.optional;
-    const isPeerDevDependency = !!peerDependenciesMeta[name]?.dev || !!peerDevDependencies.includes(name);
+    const isPeerDevDependency = isAncestorDevDependency || !!peerDependenciesMeta[name]?.dev || !!peerDevDependencies.includes(name);
 
     return {
       name,
@@ -141,14 +144,14 @@ function buildDependencyArray(type: Dependency["type"], pkgJson: PackageJson, de
   });
 }
 
-export function getPackageMeta(packagePath: string, packageJson: PackageJson): PackageMeta {
+export function getPackageMeta(packagePath: string, packageJson: PackageJson, isAncestorDevDependency: boolean): PackageMeta {
   const { name, version} = packageJson;
   const packageMeta = { name, version, packagePath } as PackageMeta;
 
-  packageMeta.dependencies = buildDependencyArray("dependencies", packageJson, packageMeta);
-  packageMeta.devDependencies = buildDependencyArray("devDependencies", packageJson, packageMeta);
-  packageMeta.optionalDependencies = buildDependencyArray("optionalDependencies", packageJson, packageMeta);
-  packageMeta.peerDependencies = buildDependencyArray("peerDependencies", packageJson, packageMeta);
+  packageMeta.dependencies = buildDependencyArray("dependencies", packageJson, packageMeta, isAncestorDevDependency);
+  packageMeta.devDependencies = buildDependencyArray("devDependencies", packageJson, packageMeta, isAncestorDevDependency);
+  packageMeta.optionalDependencies = buildDependencyArray("optionalDependencies", packageJson, packageMeta, isAncestorDevDependency);
+  packageMeta.peerDependencies = buildDependencyArray("peerDependencies", packageJson, packageMeta, isAncestorDevDependency);
 
   return packageMeta;
 }
