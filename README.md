@@ -27,6 +27,8 @@ Options:
                                                       [boolean] [default: false]
       --verbose                    Prints every peer dependency, even those that
                                    are met            [boolean] [default: false]
+      --ignore                     package name to ignore (may specify multiple)
+                                                           [array] [default: []]
       --runOnlyOnRootDependencies  Run tool only on package root dependencies
                                                       [boolean] [default: false]
       --findSolutions              Search for solutions and print package
