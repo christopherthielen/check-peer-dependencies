@@ -1,6 +1,6 @@
 import * as semver from 'semver';
 import { exec } from 'shelljs';
-import { Dependency } from './packageUtils';
+import { Dependency, modifiedSemverSatisfies } from './packageUtils';
 
 function semverReverseSort(a, b) {
   const lt = semver.lt(a, b);
@@ -40,7 +40,7 @@ function findPossibleResolution(packageName, allPeerDeps) {
     rawVersionsInfo = exec(command, { silent: true }).stdout;
     const availableVersions = JSON.parse(rawVersionsInfo.replace(/'/g, '"')).sort(semverReverseSort);
     return availableVersions.find(ver => requiredPeerVersions.every(peerVer => {
-      return semver.satisfies(ver, peerVer.version, { includePrerelease: true });
+      return modifiedSemverSatisfies(ver, peerVer.version);
     }));
   } catch (err) {
     console.error(`Error while running command: '${command}'`);

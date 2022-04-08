@@ -1,9 +1,10 @@
 "use strict";
 exports.__esModule = true;
-exports.isSameDep = exports.getInstalledVersion = exports.resolvePackageDir = exports.getPackageMeta = exports.walkPackageDependencyTree = exports.gatherPeerDependencies = void 0;
+exports.modifiedSemverSatisfies = exports.isSameDep = exports.getInstalledVersion = exports.resolvePackageDir = exports.getPackageMeta = exports.walkPackageDependencyTree = exports.gatherPeerDependencies = void 0;
 var fs = require("fs");
 var path = require("path");
 var resolve = require("resolve");
+var semver = require("semver");
 var readJson_1 = require("./readJson");
 function gatherPeerDependencies(packagePath, options) {
     var peerDeps = [];
@@ -127,3 +128,21 @@ function isSameDep(a, b) {
         a.depender.packagePath === b.depender.packagePath;
 }
 exports.isSameDep = isSameDep;
+function modifiedSemverSatisfies(version, range) {
+    if (semver.satisfies(version, range, { includePrerelease: true })) {
+        return checkPrerelease(version, range);
+    }
+    return false;
+}
+exports.modifiedSemverSatisfies = modifiedSemverSatisfies;
+function checkPrerelease(version, range) {
+    var versionPrerelease = semver.prerelease(version);
+    var rangePrerelease = semver.prerelease(semver.minVersion(range).version);
+    if (versionPrerelease && rangePrerelease) {
+        if (versionPrerelease.join() == rangePrerelease.join()) {
+            return true;
+        }
+        return false;
+    }
+    return true;
+}

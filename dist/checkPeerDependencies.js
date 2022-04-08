@@ -13,7 +13,6 @@ var __assign = (this && this.__assign) || function () {
 };
 exports.__esModule = true;
 exports.checkPeerDependencies = void 0;
-var semver = require("semver");
 var shelljs_1 = require("shelljs");
 var packageManager_1 = require("./packageManager");
 var packageUtils_1 = require("./packageUtils");
@@ -22,7 +21,7 @@ function getAllNestedPeerDependencies(options) {
     var gatheredDependencies = (0, packageUtils_1.gatherPeerDependencies)(".", options);
     function applySemverInformation(dep) {
         var installedVersion = (0, packageUtils_1.getInstalledVersion)(dep);
-        var semverSatisfies = installedVersion ? semver.satisfies(installedVersion, dep.version, { includePrerelease: true }) : false;
+        var semverSatisfies = installedVersion ? (0, packageUtils_1.modifiedSemverSatisfies)(installedVersion, dep.version) : false;
         var isYalc = !!/-[a-f0-9]+-yalc$/.exec(installedVersion);
         return __assign(__assign({}, dep), { installedVersion: installedVersion, semverSatisfies: semverSatisfies, isYalc: isYalc });
     }
@@ -82,7 +81,7 @@ function findSolutions(problems, allNestedPeerDependencies) {
         var errorPrefix = "Unable to find a version of ".concat(name, " that satisfies the following peerDependencies:");
         var peerDepRanges = allNestedPeerDependencies.filter(function (dep) { return dep.name === name; })
             .reduce(function (acc, dep) { return acc.includes(dep.version) ? acc : acc.concat(dep.version); }, []);
-        console.error("  \u274C  ".concat(errorPrefix, " ").concat(peerDepRanges.join(" and ")));
+        console.error("  \u26A0  ".concat(errorPrefix, " ").concat(peerDepRanges.join(" and ")));
     });
     if (nosolution.length > 0) {
         console.error();

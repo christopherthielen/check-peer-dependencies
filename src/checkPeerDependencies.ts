@@ -4,7 +4,7 @@ import * as semver from 'semver';
 import { exec } from 'shelljs';
 import { CliOptions } from './cli';
 import { getCommandLines } from './packageManager';
-import { Dependency, gatherPeerDependencies, getInstalledVersion, isSameDep } from './packageUtils';
+import { Dependency, gatherPeerDependencies, getInstalledVersion, isSameDep, modifiedSemverSatisfies } from './packageUtils';
 import { findPossibleResolutions, Resolution } from './solution';
 
 function getAllNestedPeerDependencies(options: CliOptions): Dependency[] {
@@ -12,7 +12,7 @@ function getAllNestedPeerDependencies(options: CliOptions): Dependency[] {
 
   function applySemverInformation(dep: Dependency): Dependency {
     const installedVersion = getInstalledVersion(dep);
-    const semverSatisfies = installedVersion ? semver.satisfies(installedVersion, dep.version, { includePrerelease: true }) : false;
+    const semverSatisfies = installedVersion ? modifiedSemverSatisfies(installedVersion, dep.version) : false;
     const isYalc = !!/-[a-f0-9]+-yalc$/.exec(installedVersion);
 
     return { ...dep, installedVersion, semverSatisfies, isYalc };
@@ -75,7 +75,7 @@ function findSolutions(problems: Dependency[], allNestedPeerDependencies: Depend
     const errorPrefix = `Unable to find a version of ${name} that satisfies the following peerDependencies:`;
     const peerDepRanges = allNestedPeerDependencies.filter(dep => dep.name === name)
         .reduce((acc, dep) => acc.includes(dep.version) ? acc : acc.concat(dep.version), []);
-    console.error(`  ❌  ${errorPrefix} ${peerDepRanges.join(" and ")}`)
+    console.error(`  ⚠  ${errorPrefix} ${peerDepRanges.join(" and ")}`)
   });
 
 

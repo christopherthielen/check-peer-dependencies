@@ -3,6 +3,7 @@ exports.__esModule = true;
 exports.findPossibleResolutions = void 0;
 var semver = require("semver");
 var shelljs_1 = require("shelljs");
+var packageUtils_1 = require("./packageUtils");
 function semverReverseSort(a, b) {
     var lt = semver.lt(a, b);
     var gt = semver.gt(a, b);
@@ -34,7 +35,7 @@ function findPossibleResolution(packageName, allPeerDeps) {
         rawVersionsInfo = (0, shelljs_1.exec)(command, { silent: true }).stdout;
         var availableVersions = JSON.parse(rawVersionsInfo.replace(/'/g, '"')).sort(semverReverseSort);
         return availableVersions.find(function (ver) { return requiredPeerVersions.every(function (peerVer) {
-            return semver.satisfies(ver, peerVer.version, { includePrerelease: true });
+            return (0, packageUtils_1.modifiedSemverSatisfies)(ver, peerVer.version);
         }); });
     }
     catch (err) {

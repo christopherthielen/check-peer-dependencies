@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from "path";
 import * as resolve from 'resolve';
+import * as semver from 'semver';
 import { CliOptions } from './cli';
 import { readJson } from './readJson';
 
@@ -194,4 +195,24 @@ export function isSameDep(a: Dependency, b: Dependency) {
       a.depender.name === b.depender.name &&
       a.depender.version === b.depender.version &&
       a.depender.packagePath === b.depender.packagePath;
+}
+
+export function modifiedSemverSatisfies(version: string, range: string) {
+  if(semver.satisfies(version, range, { includePrerelease: true })) {
+    return checkPrerelease(version, range)
+  }
+  return false
+}
+
+function checkPrerelease (version, range) {
+  const versionPrerelease = semver.prerelease(version)
+  const rangePrerelease = semver.prerelease(semver.minVersion(range).version)
+
+  if(versionPrerelease && rangePrerelease) {
+    if(versionPrerelease.join() == rangePrerelease.join()) {
+      return true
+    }
+    return false
+  }
+  return true
 }
