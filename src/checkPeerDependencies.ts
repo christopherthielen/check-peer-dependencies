@@ -37,10 +37,12 @@ const reportPeerDependencyStatus = (dep: Dependency, byDepender: boolean, showSa
 
   if (dep.semverSatisfies) {
     if (showSatisfiedDep) {
-      console.log(`  tick  ${message} (${dep.installedVersion} is installed)`);
+      // console.log(`  ✅  ${message} (${dep.installedVersion} is installed)`);
+      // Do nothing
     }
   } else if (dep.isYalc) {
-    console.log(`  ☑️  ${message} (${dep.installedVersion} is installed via yalc)`);
+    // console.log(`  ☑️  ${message} (${dep.installedVersion} is installed via yalc)`);
+    // Do Nothing
   } else if (dep.installedVersion && dep.isPeerOptionalDependency) {
     if (verbose) {
       console.log(`  ☑️   ${message}) OPTIONAL (${dep.installedVersion} is installed)`);

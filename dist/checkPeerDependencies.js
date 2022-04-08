@@ -40,11 +40,13 @@ var reportPeerDependencyStatus = function (dep, byDepender, showSatisfiedDep, ve
         "".concat(dep.name, " ").concat(dep.version, " is required by ").concat(dep.depender.name, "@").concat(dep.depender.version);
     if (dep.semverSatisfies) {
         if (showSatisfiedDep) {
-            console.log("  tick  ".concat(message, " (").concat(dep.installedVersion, " is installed)"));
+            // console.log(`  ✅  ${message} (${dep.installedVersion} is installed)`);
+            // Do nothing
         }
     }
     else if (dep.isYalc) {
-        console.log("  \u2611\uFE0F  ".concat(message, " (").concat(dep.installedVersion, " is installed via yalc)"));
+        // console.log(`  ☑️  ${message} (${dep.installedVersion} is installed via yalc)`);
+        // Do Nothing
     }
     else if (dep.installedVersion && dep.isPeerOptionalDependency) {
         if (verbose) {
