@@ -52,7 +52,7 @@ const reportPeerDependencyStatus = (dep: Dependency, byDepender: boolean, showSa
       console.log(`  ☑️   ${message} IGNORED (${dep.name} is not installed)`);
     }
   } else if (dep.installedVersion) {
-    console.log(`  ❌  ${message}) (${dep.installedVersion} is installed)`);
+    console.log(`  ❌  ${message} (${dep.installedVersion} is installed)`);
   } else if (dep.isPeerOptionalDependency) {
     if (verbose) {
       console.log(`  ☑️   ${message} OPTIONAL (${dep.name} is not installed)`);
@@ -75,7 +75,7 @@ function findSolutions(problems: Dependency[], allNestedPeerDependencies: Depend
     const errorPrefix = `Unable to find a version of ${name} that satisfies the following peerDependencies:`;
     const peerDepRanges = allNestedPeerDependencies.filter(dep => dep.name === name)
         .reduce((acc, dep) => acc.includes(dep.version) ? acc : acc.concat(dep.version), []);
-    console.error(`  ⚠  ${errorPrefix} ${peerDepRanges.join(" and ")}`)
+    console.error(`  ⭕  ${errorPrefix} ${peerDepRanges.join(" and ")}`)
   });
 
 

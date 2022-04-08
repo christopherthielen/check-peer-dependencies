@@ -58,7 +58,7 @@ var reportPeerDependencyStatus = function (dep, byDepender, showSatisfiedDep, ve
         }
     }
     else if (dep.installedVersion) {
-        console.log("  \u274C  ".concat(message, ") (").concat(dep.installedVersion, " is installed)"));
+        console.log("  \u274C  ".concat(message, " (").concat(dep.installedVersion, " is installed)"));
     }
     else if (dep.isPeerOptionalDependency) {
         if (verbose) {
@@ -81,7 +81,7 @@ function findSolutions(problems, allNestedPeerDependencies) {
         var errorPrefix = "Unable to find a version of ".concat(name, " that satisfies the following peerDependencies:");
         var peerDepRanges = allNestedPeerDependencies.filter(function (dep) { return dep.name === name; })
             .reduce(function (acc, dep) { return acc.includes(dep.version) ? acc : acc.concat(dep.version); }, []);
-        console.error("  \u26A0  ".concat(errorPrefix, " ").concat(peerDepRanges.join(" and ")));
+        console.error("  \u2B55  ".concat(errorPrefix, " ").concat(peerDepRanges.join(" and ")));
     });
     if (nosolution.length > 0) {
         console.error();
