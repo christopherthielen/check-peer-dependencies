@@ -75,7 +75,7 @@ function findSolutions(problems: Dependency[], allNestedPeerDependencies: Depend
     const errorPrefix = `Unable to find a version of ${name} that satisfies the following peerDependencies:`;
     const peerDepRanges = allNestedPeerDependencies.filter(dep => dep.name === name)
         .reduce((acc, dep) => acc.includes(dep.version) ? acc : acc.concat(dep.version), []);
-    console.error(`  ⭕  ${errorPrefix} ${peerDepRanges.join(" and ")}`)
+    console.log(`  ⭕  ${errorPrefix} ${peerDepRanges.join(" and ")}`)
   });
 
 
