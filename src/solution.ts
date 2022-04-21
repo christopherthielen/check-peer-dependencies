@@ -20,7 +20,7 @@ export interface Resolution {
 }
 
 export function findPossibleResolutions(problems: Dependency[], allPeerDependencies: Dependency[], ): Resolution[] {
-  const uniq: Dependency[] = problems.reduce((acc, problem) => acc.some(dep => dep.name === problem.name) ? acc : acc.concat(problem), []);
+  const uniq: Dependency[] = problems.reduce((acc, problem) => (acc.some(dep => (dep.name === problem.name)) || !problem.unmatchedPrerelease) ? acc : acc.concat(problem), []);
   return uniq.map(problem => {
     const shouldUpgrade = !!problem.installedVersion;
     const resolutionType = shouldUpgrade ? 'upgrade' : problem.isPeerDevDependency ? 'devInstall' : 'install';

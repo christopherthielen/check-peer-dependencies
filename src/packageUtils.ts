@@ -45,6 +45,7 @@ export interface Dependency {
   semverSatisfies?: boolean;
   isYalc?: boolean;
   isIgnored?: boolean;
+  unmatchedPrerelease?: boolean;
 }
 
 interface PackageMeta {
@@ -65,10 +66,11 @@ export function gatherPeerDependencies(packagePath, options: CliOptions): Depend
     peerDeps = peerDeps.concat(deps.peerDependencies);
   };
   walkPackageDependencyTree(packagePath, false, visitor, [], options);
+  const registries = getRegistries()
 
-  // Eliminate duplicates
+  // Eliminate duplicates and check if owned by mcp
   return peerDeps.reduce((acc: Dependency[], dep: Dependency) => {
-    return acc.some(dep2 => isSameDep(dep, dep2)) ? acc : acc.concat(dep);
+    return (acc.some(dep2 => isSameDep(dep, dep2)) || (!options.includeAll ? !checkRegistry(dep, registries) : false)) ? acc : acc.concat(dep);
   }, [] as Dependency[]);
 }
 
@@ -204,15 +206,35 @@ export function modifiedSemverSatisfies(version: string, range: string) {
   return false
 }
 
-function checkPrerelease (version, range) {
+export function checkPrerelease (version, range) {
   const versionPrerelease = semver.prerelease(version)
   const rangePrerelease = semver.prerelease(semver.minVersion(range).version)
 
   if(versionPrerelease && rangePrerelease) {
-    if(versionPrerelease.join() == rangePrerelease.join()) {
+    if(versionPrerelease.join() === rangePrerelease.join()) {
       return true
     }
     return false
   }
   return true
+}
+
+function getRegistries() {
+  try {
+    const fullPath = path.join(__dirname, '../.include')
+    const data = fs.readFileSync(fullPath, 'utf8')
+    return data.split(/\r?\n/)
+  } catch (err) {
+    console.error(err)
+  }
+  return []
+}
+
+function checkRegistry(dep: Dependency, registries: string[]) {
+
+  function checkPatten (depName: string, registryName: string) {
+    const re = new RegExp('^'+registryName)
+    return re.test(depName)
+  }
+  return registries.some( registryName => checkPatten(dep.name, registryName))
 }

@@ -1,6 +1,6 @@
 "use strict";
 exports.__esModule = true;
-exports.modifiedSemverSatisfies = exports.isSameDep = exports.getInstalledVersion = exports.resolvePackageDir = exports.getPackageMeta = exports.walkPackageDependencyTree = exports.gatherPeerDependencies = void 0;
+exports.checkPrerelease = exports.modifiedSemverSatisfies = exports.isSameDep = exports.getInstalledVersion = exports.resolvePackageDir = exports.getPackageMeta = exports.walkPackageDependencyTree = exports.gatherPeerDependencies = void 0;
 var fs = require("fs");
 var path = require("path");
 var resolve = require("resolve");
@@ -12,9 +12,10 @@ function gatherPeerDependencies(packagePath, options) {
         peerDeps = peerDeps.concat(deps.peerDependencies);
     };
     walkPackageDependencyTree(packagePath, false, visitor, [], options);
-    // Eliminate duplicates
+    var registries = getRegistries();
+    // Eliminate duplicates and check if owned by mcp
     return peerDeps.reduce(function (acc, dep) {
-        return acc.some(function (dep2) { return isSameDep(dep, dep2); }) ? acc : acc.concat(dep);
+        return (acc.some(function (dep2) { return isSameDep(dep, dep2); }) || (!options.includeAll ? !checkRegistry(dep, registries) : false)) ? acc : acc.concat(dep);
     }, []);
 }
 exports.gatherPeerDependencies = gatherPeerDependencies;
@@ -139,10 +140,29 @@ function checkPrerelease(version, range) {
     var versionPrerelease = semver.prerelease(version);
     var rangePrerelease = semver.prerelease(semver.minVersion(range).version);
     if (versionPrerelease && rangePrerelease) {
-        if (versionPrerelease.join() == rangePrerelease.join()) {
+        if (versionPrerelease.join() === rangePrerelease.join()) {
             return true;
         }
         return false;
     }
     return true;
+}
+exports.checkPrerelease = checkPrerelease;
+function getRegistries() {
+    try {
+        var fullPath = path.join(__dirname, '../.include');
+        var data = fs.readFileSync(fullPath, 'utf8');
+        return data.split(/\r?\n/);
+    }
+    catch (err) {
+        console.error(err);
+    }
+    return [];
+}
+function checkRegistry(dep, registries) {
+    function checkPatten(depName, registryName) {
+        var re = new RegExp('^' + registryName);
+        return re.test(depName);
+    }
+    return registries.some(function (registryName) { return checkPatten(dep.name, registryName); });
 }

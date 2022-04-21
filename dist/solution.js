@@ -16,7 +16,7 @@ function semverReverseSort(a, b) {
     return -1;
 }
 function findPossibleResolutions(problems, allPeerDependencies) {
-    var uniq = problems.reduce(function (acc, problem) { return acc.some(function (dep) { return dep.name === problem.name; }) ? acc : acc.concat(problem); }, []);
+    var uniq = problems.reduce(function (acc, problem) { return (acc.some(function (dep) { return (dep.name === problem.name); }) || !problem.unmatchedPrerelease) ? acc : acc.concat(problem); }, []);
     return uniq.map(function (problem) {
         var shouldUpgrade = !!problem.installedVersion;
         var resolutionType = shouldUpgrade ? 'upgrade' : problem.isPeerDevDependency ? 'devInstall' : 'install';

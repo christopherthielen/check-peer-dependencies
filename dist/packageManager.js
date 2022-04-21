@@ -30,12 +30,13 @@ function getCommandLines(packageManager, resolutions) {
         }
     }
     else if (packageManager === 'npm' && (installs.length || upgrades.length || devInstalls.length)) {
-        if (installs.length || upgrades.length) {
-            commands.push("npm install ".concat(installs.concat(upgrades).join(' ')));
-        }
-        if (devInstalls.length) {
-            commands.push("npm install -D ".concat(devInstalls));
-        }
+        // if (installs.length || upgrades.length) {
+        //   commands.push(`npm install ${installs.concat(upgrades).join(' ')}`);
+        // }
+        // if (devInstalls.length) {
+        //   commands.push(`npm install -D ${devInstalls}`);
+        // }
+        commands.push(installs.concat(upgrades, devInstalls).join(' '));
     }
     return commands;
 }

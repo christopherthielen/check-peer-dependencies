@@ -25,12 +25,13 @@ export function getCommandLines(packageManager: string, resolutions: Resolution[
       commands.push(`yarn upgrade ${upgrades.join(' ')}`);
     }
   } else if (packageManager === 'npm' && (installs.length || upgrades.length || devInstalls.length)) {
-    if (installs.length || upgrades.length) {
-      commands.push(`npm install ${installs.concat(upgrades).join(' ')}`);
-    }
-    if (devInstalls.length) {
-      commands.push(`npm install -D ${devInstalls}`);
-    }
+    // if (installs.length || upgrades.length) {
+    //   commands.push(`npm install ${installs.concat(upgrades).join(' ')}`);
+    // }
+    // if (devInstalls.length) {
+    //   commands.push(`npm install -D ${devInstalls}`);
+    // }
+    commands.push(installs.concat(upgrades, devInstalls).join(' '));
   }
   return commands;
 }

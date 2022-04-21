@@ -35,6 +35,16 @@ const options = yarrrrgs
       default: false,
       description: 'Prints every peer dependency, even those that are met',
     })
+    .option('fail', {
+      boolean: true,
+      default: false,
+      description: 'Exits the process if there are packages found to be installed',
+    })
+    .option('includeAll', {
+      boolean: true,
+      default: false,
+      description: 'Check for all peer dependencies (even outside .include file)'
+    })
     .option('ignore', {
       string:  true,
       array: true,
@@ -67,6 +77,8 @@ export interface CliOptions {
   help: boolean;
   yarn: boolean;
   verbose: boolean;
+  fail:boolean;
+  includeAll:boolean;
   debug: boolean;
   npm: boolean;
   ignore: string[];

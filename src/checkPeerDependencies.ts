@@ -4,7 +4,7 @@ import * as semver from 'semver';
 import { exec } from 'shelljs';
 import { CliOptions } from './cli';
 import { getCommandLines } from './packageManager';
-import { Dependency, gatherPeerDependencies, getInstalledVersion, isSameDep, modifiedSemverSatisfies } from './packageUtils';
+import { Dependency, gatherPeerDependencies, getInstalledVersion, isSameDep, modifiedSemverSatisfies, checkPrerelease } from './packageUtils';
 import { findPossibleResolutions, Resolution } from './solution';
 
 function getAllNestedPeerDependencies(options: CliOptions): Dependency[] {
@@ -14,8 +14,9 @@ function getAllNestedPeerDependencies(options: CliOptions): Dependency[] {
     const installedVersion = getInstalledVersion(dep);
     const semverSatisfies = installedVersion ? modifiedSemverSatisfies(installedVersion, dep.version) : false;
     const isYalc = !!/-[a-f0-9]+-yalc$/.exec(installedVersion);
+    const unmatchedPrerelease = checkPrerelease(installedVersion, dep.version)
 
-    return { ...dep, installedVersion, semverSatisfies, isYalc };
+    return { ...dep, installedVersion, semverSatisfies, isYalc, unmatchedPrerelease };
   }
 
   function applyIgnoreInformation (dep: Dependency): Dependency {
@@ -35,6 +36,7 @@ const reportPeerDependencyStatus = (dep: Dependency, byDepender: boolean, showSa
       `${dep.depender.name}@${dep.depender.version} requires ${dep.name} ${dep.version}` :
       `${dep.name} ${dep.version} is required by ${dep.depender.name}@${dep.depender.version}`;
 
+  let errorMessage = ''
   if (dep.semverSatisfies) {
     if (showSatisfiedDep) {
       // console.log(`  ✅  ${message} (${dep.installedVersion} is installed)`);
@@ -45,26 +47,29 @@ const reportPeerDependencyStatus = (dep: Dependency, byDepender: boolean, showSa
     // Do Nothing
   } else if (dep.installedVersion && dep.isPeerOptionalDependency) {
     if (verbose) {
-      console.log(`  ☑️   ${message}) OPTIONAL (${dep.installedVersion} is installed)`);
+      errorMessage = `  ☑️   ${message}) OPTIONAL (${dep.installedVersion} is installed)`;
     }
+  } else if (dep.installedVersion && !dep.unmatchedPrerelease) {
+    errorMessage = `  ⚠   ${message}) (${dep.installedVersion} is installed | prerelease unmatched)`;
   } else if (dep.isIgnored) {
     if (verbose) {
-      console.log(`  ☑️   ${message} IGNORED (${dep.name} is not installed)`);
+      errorMessage = `  ☑️   ${message} IGNORED (${dep.name} is not installed)`;
     }
   } else if (dep.installedVersion) {
-    console.log(`  ❌  ${message} (${dep.installedVersion} is installed)`);
+    errorMessage = `  ❌  ${message} (${dep.installedVersion} is installed)`;
   } else if (dep.isPeerOptionalDependency) {
     if (verbose) {
-      console.log(`  ☑️   ${message} OPTIONAL (${dep.name} is not installed)`);
+      errorMessage = `  ☑️   ${message} OPTIONAL (${dep.name} is not installed)`;
     }
   } else {
-    console.log(`  ❌  ${message} (${dep.name} is not installed)`);
+    errorMessage = `  ❌  ${message} (${dep.name} is not installed)`;
   }
+  return errorMessage
 };
 
 function findSolutions(problems: Dependency[], allNestedPeerDependencies: Dependency[]) {
   console.log();
-  console.log(`Searching for solutions for ${problems.length} missing dependencies...`);
+  console.log('Searching for solutions for missing dependencies...');
   console.log();
   const resolutions: Resolution[] = findPossibleResolutions(problems, allNestedPeerDependencies);
   const resolutionsWithSolutions = resolutions.filter(r => r.resolution);
@@ -121,12 +126,19 @@ function report(options: CliOptions, allNestedPeerDependencies: Dependency[]) {
   } else if (options.orderBy == 'dependee') {
     allNestedPeerDependencies.sort((a, b) => `${a.name}${a.depender}`.localeCompare(`${b.name}${b.depender}`));
   }
+  let messages = []
 
   allNestedPeerDependencies.forEach(dep => {
     const relatedPeerDeps = allNestedPeerDependencies.filter(other => other.name === dep.name && other !== dep);
     const showIfSatisfied = options.verbose || relatedPeerDeps.some(dep => isProblem(dep));
-    reportPeerDependencyStatus(dep, options.orderBy === 'depender', showIfSatisfied, options.verbose);
+    const errorMessage = reportPeerDependencyStatus(dep, options.orderBy === 'depender', showIfSatisfied, options.verbose)
+    if (errorMessage !== '' && !(messages.includes(errorMessage))) {
+      messages.push(errorMessage)
+    }
   });
+  messages.forEach(message => {
+    console.log(message)
+  })
 }
 
 export function checkPeerDependencies(packageManager: string, options: CliOptions) {
@@ -147,6 +159,21 @@ export function checkPeerDependencies(packageManager: string, options: CliOption
     if (commandLines.length) {
       return installPeerDependencies(commandLines, options, nosolution, packageManager);
     }
+  } else if (options.fail) {
+    const { nosolution, resolutionsWithSolutions } = findSolutions(problems, allNestedPeerDependencies);
+    const commandLines = getCommandLines(packageManager, resolutionsWithSolutions);
+
+    if (commandLines.length) {
+      console.log();
+      console.log('Please install the following dependencies ');
+      console.log();
+      commandLines.forEach(command => console.log(command));
+      console.log();
+    }
+
+    if (nosolution.length || commandLines.length) {
+      process.exit(1)
+    }
   } else if (options.findSolutions) {
     const { resolutionsWithSolutions } = findSolutions(problems, allNestedPeerDependencies);
     const commandLines = getCommandLines(packageManager, resolutionsWithSolutions);
@@ -159,16 +186,17 @@ export function checkPeerDependencies(packageManager: string, options: CliOption
       console.log();
     }
   } else {
-    console.log();
-    console.log(`Search for solutions using this command:`);
-    console.log();
-    console.log(`npx check-peer-dependencies --findSolutions`);
-    console.log();
-    console.log(`Install peerDependencies using this command:`);
-    console.log();
-    console.log(`npx check-peer-dependencies --install`);
-    console.log();
+    const { resolutionsWithSolutions } = findSolutions(problems, allNestedPeerDependencies);
+    const commandLines = getCommandLines(packageManager, resolutionsWithSolutions);
+
+    if (commandLines.length) {
+      console.log();
+      console.log('Please install the following dependencies ');
+      console.log();
+      commandLines.forEach(command => console.log(command));
+      console.log();
+    }
   }
 
-  process.exit(1);
+  process.exit(0);
 }

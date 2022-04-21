@@ -23,7 +23,8 @@ function getAllNestedPeerDependencies(options) {
         var installedVersion = (0, packageUtils_1.getInstalledVersion)(dep);
         var semverSatisfies = installedVersion ? (0, packageUtils_1.modifiedSemverSatisfies)(installedVersion, dep.version) : false;
         var isYalc = !!/-[a-f0-9]+-yalc$/.exec(installedVersion);
-        return __assign(__assign({}, dep), { installedVersion: installedVersion, semverSatisfies: semverSatisfies, isYalc: isYalc });
+        var unmatchedPrerelease = (0, packageUtils_1.checkPrerelease)(installedVersion, dep.version);
+        return __assign(__assign({}, dep), { installedVersion: installedVersion, semverSatisfies: semverSatisfies, isYalc: isYalc, unmatchedPrerelease: unmatchedPrerelease });
     }
     function applyIgnoreInformation(dep) {
         var isIgnored = options.ignore.includes(dep.name);
@@ -37,6 +38,7 @@ var reportPeerDependencyStatus = function (dep, byDepender, showSatisfiedDep, ve
     var message = byDepender ?
         "".concat(dep.depender.name, "@").concat(dep.depender.version, " requires ").concat(dep.name, " ").concat(dep.version) :
         "".concat(dep.name, " ").concat(dep.version, " is required by ").concat(dep.depender.name, "@").concat(dep.depender.version);
+    var errorMessage = '';
     if (dep.semverSatisfies) {
         if (showSatisfiedDep) {
             // console.log(`  ✅  ${message} (${dep.installedVersion} is installed)`);
@@ -49,29 +51,33 @@ var reportPeerDependencyStatus = function (dep, byDepender, showSatisfiedDep, ve
     }
     else if (dep.installedVersion && dep.isPeerOptionalDependency) {
         if (verbose) {
-            console.log("  \u2611\uFE0F   ".concat(message, ") OPTIONAL (").concat(dep.installedVersion, " is installed)"));
+            errorMessage = "  \u2611\uFE0F   ".concat(message, ") OPTIONAL (").concat(dep.installedVersion, " is installed)");
         }
+    }
+    else if (dep.installedVersion && !dep.unmatchedPrerelease) {
+        errorMessage = "  \u26A0   ".concat(message, ") (").concat(dep.installedVersion, " is installed | prerelease unmatched)");
     }
     else if (dep.isIgnored) {
         if (verbose) {
-            console.log("  \u2611\uFE0F   ".concat(message, " IGNORED (").concat(dep.name, " is not installed)"));
+            errorMessage = "  \u2611\uFE0F   ".concat(message, " IGNORED (").concat(dep.name, " is not installed)");
         }
     }
     else if (dep.installedVersion) {
-        console.log("  \u274C  ".concat(message, " (").concat(dep.installedVersion, " is installed)"));
+        errorMessage = "  \u274C  ".concat(message, " (").concat(dep.installedVersion, " is installed)");
     }
     else if (dep.isPeerOptionalDependency) {
         if (verbose) {
-            console.log("  \u2611\uFE0F   ".concat(message, " OPTIONAL (").concat(dep.name, " is not installed)"));
+            errorMessage = "  \u2611\uFE0F   ".concat(message, " OPTIONAL (").concat(dep.name, " is not installed)");
         }
     }
     else {
-        console.log("  \u274C  ".concat(message, " (").concat(dep.name, " is not installed)"));
+        errorMessage = "  \u274C  ".concat(message, " (").concat(dep.name, " is not installed)");
     }
+    return errorMessage;
 };
 function findSolutions(problems, allNestedPeerDependencies) {
     console.log();
-    console.log("Searching for solutions for ".concat(problems.length, " missing dependencies..."));
+    console.log('Searching for solutions for missing dependencies...');
     console.log();
     var resolutions = (0, solution_1.findPossibleResolutions)(problems, allNestedPeerDependencies);
     var resolutionsWithSolutions = resolutions.filter(function (r) { return r.resolution; });
@@ -121,10 +127,17 @@ function report(options, allNestedPeerDependencies) {
     else if (options.orderBy == 'dependee') {
         allNestedPeerDependencies.sort(function (a, b) { return "".concat(a.name).concat(a.depender).localeCompare("".concat(b.name).concat(b.depender)); });
     }
+    var messages = [];
     allNestedPeerDependencies.forEach(function (dep) {
         var relatedPeerDeps = allNestedPeerDependencies.filter(function (other) { return other.name === dep.name && other !== dep; });
         var showIfSatisfied = options.verbose || relatedPeerDeps.some(function (dep) { return isProblem(dep); });
-        reportPeerDependencyStatus(dep, options.orderBy === 'depender', showIfSatisfied, options.verbose);
+        var errorMessage = reportPeerDependencyStatus(dep, options.orderBy === 'depender', showIfSatisfied, options.verbose);
+        if (errorMessage !== '' && !(messages.includes(errorMessage))) {
+            messages.push(errorMessage);
+        }
+    });
+    messages.forEach(function (message) {
+        console.log(message);
     });
 }
 function checkPeerDependencies(packageManager, options) {
@@ -142,6 +155,20 @@ function checkPeerDependencies(packageManager, options) {
             return installPeerDependencies(commandLines, options, nosolution, packageManager);
         }
     }
+    else if (options.fail) {
+        var _b = findSolutions(problems, allNestedPeerDependencies), nosolution = _b.nosolution, resolutionsWithSolutions = _b.resolutionsWithSolutions;
+        var commandLines = (0, packageManager_1.getCommandLines)(packageManager, resolutionsWithSolutions);
+        if (commandLines.length) {
+            console.log();
+            console.log('Please install the following dependencies ');
+            console.log();
+            commandLines.forEach(function (command) { return console.log(command); });
+            console.log();
+        }
+        if (nosolution.length || commandLines.length) {
+            process.exit(1);
+        }
+    }
     else if (options.findSolutions) {
         var resolutionsWithSolutions = findSolutions(problems, allNestedPeerDependencies).resolutionsWithSolutions;
         var commandLines = (0, packageManager_1.getCommandLines)(packageManager, resolutionsWithSolutions);
@@ -154,16 +181,16 @@ function checkPeerDependencies(packageManager, options) {
         }
     }
     else {
-        console.log();
-        console.log("Search for solutions using this command:");
-        console.log();
-        console.log("npx check-peer-dependencies --findSolutions");
-        console.log();
-        console.log("Install peerDependencies using this command:");
-        console.log();
-        console.log("npx check-peer-dependencies --install");
-        console.log();
+        var resolutionsWithSolutions = findSolutions(problems, allNestedPeerDependencies).resolutionsWithSolutions;
+        var commandLines = (0, packageManager_1.getCommandLines)(packageManager, resolutionsWithSolutions);
+        if (commandLines.length) {
+            console.log();
+            console.log('Please install the following dependencies ');
+            console.log();
+            commandLines.forEach(function (command) { return console.log(command); });
+            console.log();
+        }
     }
-    process.exit(1);
+    process.exit(0);
 }
 exports.checkPeerDependencies = checkPeerDependencies;
