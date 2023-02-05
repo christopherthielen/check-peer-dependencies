@@ -22,7 +22,7 @@ export function getCommandLines(packageManager: string, resolutions: Resolution[
       commands.push(`yarn add -D ${devInstalls.join(' ')}`);
     }
     if (upgrades.length) {
-      commands.push(`yarn upgrade ${upgrades.join(' ')}`);
+      commands.push(`yarn up ${upgrades.join(' ')}`);
     }
   } else if (packageManager === 'npm' && (installs.length || upgrades.length || devInstalls.length)) {
     if (installs.length || upgrades.length) {
