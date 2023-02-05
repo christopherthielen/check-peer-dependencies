@@ -90,6 +90,6 @@ Searching for solutions:
 ❌  Unable to find a version of @angular/common that satisfies the following peerDependencies: 9.0.0-next.9 and ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
 ❌  Unable to find a version of @angular/core that satisfies the following peerDependencies: 9.0.0-next.9 and ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
 
-yarn upgrade @angular/router@8.2.10
+yarn up @angular/router@8.2.10
 ```
 
