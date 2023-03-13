@@ -162,7 +162,9 @@ export function resolvePackageDir(basedir: string, packageName: string) {
   // In resolve() v2.x this callback has a different signature
   // function packageFilter(pkg, pkgfile, pkgdir) {
   function packageFilter(pkg, pkgdir) {
-    packagePath = pkgdir;
+    if (!packagePath || pkg.version) {
+      packagePath = pkgdir;
+    }
     return pkg;
   }
 
