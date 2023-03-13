@@ -1,3 +1,14 @@
+# 4.2.0 (2023-03-13)
+[Compare `check-peer-dependencies` versions 4.1.0 and 4.2.0](https://github.com/christopherthielen/check-peer-dependencies/compare/4.1.0...4.2.0)
+
+### Bug Fixes
+
+* Install peer deps as devDependencies if the peer dep came from a dev dependency ([6ef3021](https://github.com/christopherthielen/check-peer-dependencies/commit/6ef3021)), closes [#21](https://github.com/christopherthielen/check-peer-dependencies/issues/21)
+* Method for determining the installed version fails [#27](https://github.com/christopherthielen/check-peer-dependencies/issues/27) ([8058585](https://github.com/christopherthielen/check-peer-dependencies/commit/8058585))
+
+
+
+
 # 4.1.0 (2021-11-28)
 [Compare `check-peer-dependencies` versions 4.0.0 and 4.1.0](https://github.com/christopherthielen/check-peer-dependencies/compare/4.0.0...4.1.0)
 
