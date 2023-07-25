@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from "path";
 import * as resolve from 'resolve';
 import { CliOptions } from './cli';
-import { readJson } from './readJson';
+import { readJson, getConfig } from './readJson';
 
 interface PackageJson {
   name: string;
@@ -65,10 +65,14 @@ export function gatherPeerDependencies(packagePath, options: CliOptions): Depend
   };
   walkPackageDependencyTree(packagePath, false, visitor, [], options);
 
+  const { enforcedPackages } = getConfig(options.config);
+
   // Eliminate duplicates
-  return peerDeps.reduce((acc: Dependency[], dep: Dependency) => {
-    return acc.some(dep2 => isSameDep(dep, dep2)) ? acc : acc.concat(dep);
-  }, [] as Dependency[]);
+  return peerDeps
+    .reduce((acc: Dependency[], dep: Dependency) => {
+      return acc.some(dep2 => isSameDep(dep, dep2)) ? acc : acc.concat(dep);
+    }, [] as Dependency[])
+    .filter(dep => enforcedPackages?.includes(dep.depender.name));
 }
 
 export function walkPackageDependencyTree(packagePath: string, isAncestorDevDependency: boolean, visitor: DependencyWalkVisitor, visitedPaths: string[], options: CliOptions) {
@@ -97,6 +101,11 @@ export function walkPackageDependencyTree(packagePath: string, isAncestorDevDepe
 
   function walkDependency(dependency: Dependency, isAncestorDevDependency: boolean) {
     if (resolve.isCore(dependency.name)) {
+      return;
+    }
+
+    // Only walk through internal packages
+    if (isExternalPackage(dependency.name)) {
       return;
     }
 
@@ -196,4 +205,10 @@ export function isSameDep(a: Dependency, b: Dependency) {
       a.depender.name === b.depender.name &&
       a.depender.version === b.depender.version &&
       a.depender.packagePath === b.depender.packagePath;
+}
+
+export function isExternalPackage(pkg: string) {
+  return !['@atlaskit', '@atlassian', '@atlassiansox'].some(scope =>
+    pkg.startsWith(scope),
+  );
 }

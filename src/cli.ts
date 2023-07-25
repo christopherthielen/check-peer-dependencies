@@ -3,6 +3,9 @@
 import * as yarrrrgs from 'yargs';
 import { checkPeerDependencies } from './checkPeerDependencies';
 import { getPackageManager } from './packageManager';
+import { getConfig } from './readJson';
+import { getCurrentBranch } from './gitUtils';
+import { getPeerDepCheckFF } from './featureFlag';
 
 const options = yarrrrgs
     .pkgConf('checkPeerDependencies')
@@ -41,6 +44,11 @@ const options = yarrrrgs
       default: [],
       description: 'package name to ignore (may specify multiple)',
     })
+    .option('config', {
+      string:  true,
+      default: '',
+      description: 'path to the config file (relative to the project root)',
+    })
     .option('runOnlyOnRootDependencies', {
         boolean: true,
         default: false,
@@ -74,11 +82,40 @@ export interface CliOptions {
   orderBy: 'depender' | 'dependee';
   findSolutions: boolean;
   install: boolean;
+  config: string;
 }
 
 if (options.help) {
   process.exit(-2);
 }
 
-const packageManager = getPackageManager(options.yarn, options.npm);
-checkPeerDependencies(packageManager, options);
+async function isOnIgnoredBranch(ignoredBranchPrefixes: string[]) {
+  const currentBranch = await getCurrentBranch();
+  return ignoredBranchPrefixes.some(prefix => currentBranch.startsWith(prefix));
+}
+
+async function isFeatureFlagOff(launchdarklyClientId: string) {
+  const isPeerDepCheckOn = await getPeerDepCheckFF(launchdarklyClientId);
+  return !isPeerDepCheckOn;
+}
+
+async function main() {
+  const { ignoredBranchPrefixes, launchdarklyClientId } = getConfig(options.config);
+
+  if (await isOnIgnoredBranch(ignoredBranchPrefixes)) {
+    console.log('Skip peer dependency check since we are on the ignored branch.')
+    process.exit(0);
+  }
+
+  if (await isFeatureFlagOff(launchdarklyClientId)) {
+    console.log('Skip peer dependency check since the feature flag is off.')
+    process.exit(0);
+  }
+
+  const packageManager = getPackageManager(options.yarn, options.npm);
+  checkPeerDependencies(packageManager, options);
+
+  process.exit(0);
+}
+
+main();

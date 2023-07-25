@@ -1,6 +1,6 @@
 {
-  "name": "check-peer-dependencies",
-  "version": "4.2.0",
+  "name": "@atlassian/check-peer-dependencies",
+  "version": "0.0.1-alpha.2",
   "description": "Checks peer dependencies of the current package.  Offers solutions for any that are unmet.",
   "main": "dist/check_peer_dependencies.js",
   "scripts": {
@@ -29,6 +29,7 @@
   },
   "homepage": "https://github.com/christopherthielen/check-peer-dependencies#readme",
   "dependencies": {
+    "launchdarkly-node-client-sdk": "^2.1.0",
     "resolve": "^1.19.0",
     "semver": "^7.3.4",
     "shelljs": "^0.8.4",

@@ -4,7 +4,7 @@ import * as semver from 'semver';
 import { exec } from 'shelljs';
 import { CliOptions } from './cli';
 import { getCommandLines } from './packageManager';
-import { Dependency, gatherPeerDependencies, getInstalledVersion, isSameDep } from './packageUtils';
+import { Dependency, gatherPeerDependencies, getInstalledVersion, isSameDep, isExternalPackage } from './packageUtils';
 import { findPossibleResolutions, Resolution } from './solution';
 
 function getAllNestedPeerDependencies(options: CliOptions): Dependency[] {
@@ -19,16 +19,20 @@ function getAllNestedPeerDependencies(options: CliOptions): Dependency[] {
   }
 
   function applyIgnoreInformation (dep: Dependency): Dependency {
-    const isIgnored = options.ignore.includes(dep.name)
+    const isIgnored = options.ignore.includes(dep.name) || isExternalPackage(dep.name)
     return {...dep, isIgnored}
   }
 
   return gatheredDependencies.map(applySemverInformation).map(applyIgnoreInformation);
 }
 
+function isPrerelease(version: string) {
+  return !!semver.prerelease(version);
+}
+
 let recursiveCount = 0;
 
-const  isProblem = (dep: Dependency) => !dep.semverSatisfies && !dep.isIgnored && !dep.isYalc && !dep.isPeerOptionalDependency;
+const isProblem = (dep: Dependency) => !dep.semverSatisfies && !dep.isIgnored && !dep.isYalc && !dep.isPeerOptionalDependency && !isPrerelease(dep.installedVersion);
 
 const reportPeerDependencyStatus = (dep: Dependency, byDepender: boolean, showSatisfiedDep: boolean, verbose: boolean) => {
   const message = byDepender ?
@@ -129,9 +133,9 @@ function report(options: CliOptions, allNestedPeerDependencies: Dependency[]) {
 
 export function checkPeerDependencies(packageManager: string, options: CliOptions) {
   const allNestedPeerDependencies = getAllNestedPeerDependencies(options);
-  report(options, allNestedPeerDependencies);
-
   const problems = allNestedPeerDependencies.filter(dep => isProblem(dep));
+
+  report(options, problems);
 
   if (!problems.length) {
     console.log('  ✅  All peer dependencies are met');
@@ -156,16 +160,6 @@ export function checkPeerDependencies(packageManager: string, options: CliOption
       commandLines.forEach(command => console.log(command));
       console.log();
     }
-  } else {
-    console.log();
-    console.log(`Search for solutions using this command:`);
-    console.log();
-    console.log(`npx check-peer-dependencies --findSolutions`);
-    console.log();
-    console.log(`Install peerDependencies using this command:`);
-    console.log();
-    console.log(`npx check-peer-dependencies --install`);
-    console.log();
   }
 
   process.exit(1);
