@@ -37,7 +37,7 @@ const reportPeerDependencyStatus = (dep: Dependency, byDepender: boolean, showSa
 
   if (dep.semverSatisfies) {
     if (showSatisfiedDep) {
-      console.log(`  ✅  ${message} (${dep.installedVersion} is installed)`);
+      console.log(`  ☑️  ${message} (${dep.installedVersion} is installed)`);
     }
   } else if (dep.isYalc) {
     console.log(`  ☑️  ${message} (${dep.installedVersion} is installed via yalc)`);
@@ -45,10 +45,12 @@ const reportPeerDependencyStatus = (dep: Dependency, byDepender: boolean, showSa
     if (verbose) {
       console.log(`  ☑️   ${message} IGNORED (${dep.name} is not installed)`);
     }
-  } else if (dep.installedVersion && dep.isPeerOptionalDependency) {
-    console.log(`  ✅  ${message}) OPTIONAL (${dep.installedVersion} is installed)`);
   } else if (dep.installedVersion) {
-    console.log(`  ❌  ${message}) (${dep.installedVersion} is installed)`);
+    if (dep.isPeerOptionalDependency) {
+      console.log(`  ❌  ${message}) OPTIONAL (${dep.installedVersion} is installed)`);
+    } else {
+      console.log(`  ❌  ${message}) (${dep.installedVersion} is installed)`);
+    }
   } else if (dep.isPeerOptionalDependency) {
     if (verbose) {
       console.log(`  ☑️   ${message} OPTIONAL (${dep.name} is not installed)`);
