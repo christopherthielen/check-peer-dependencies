@@ -28,7 +28,8 @@ function getAllNestedPeerDependencies(options: CliOptions): Dependency[] {
 
 let recursiveCount = 0;
 
-const isProblem = (dep: Dependency) => !dep.isIgnored && !dep.isYalc && !dep.semverSatisfies && (!dep.isPeerOptionalDependency ? true : dep.installedVersion);
+const isProblem = (dep: Dependency) => !dep.semverSatisfies && !dep.isIgnored && !dep.isYalc &&
+    (!dep.isPeerOptionalDependency || !!dep.installedVersion);
 
 const reportPeerDependencyStatus = (dep: Dependency, byDepender: boolean, showSatisfiedDep: boolean, verbose: boolean) => {
   const message = byDepender ?
@@ -37,7 +38,7 @@ const reportPeerDependencyStatus = (dep: Dependency, byDepender: boolean, showSa
 
   if (dep.semverSatisfies) {
     if (showSatisfiedDep) {
-      console.log(`  ☑️  ${message} (${dep.installedVersion} is installed)`);
+      console.log(`  ✅  ${message} (${dep.installedVersion} is installed)`);
     }
   } else if (dep.isYalc) {
     console.log(`  ☑️  ${message} (${dep.installedVersion} is installed via yalc)`);
