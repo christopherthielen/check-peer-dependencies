@@ -28,7 +28,8 @@ function getAllNestedPeerDependencies(options: CliOptions): Dependency[] {
 
 let recursiveCount = 0;
 
-const  isProblem = (dep: Dependency) => !dep.semverSatisfies && !dep.isIgnored && !dep.isYalc && !dep.isPeerOptionalDependency;
+const isProblem = (dep: Dependency) => !dep.semverSatisfies && !dep.isIgnored && !dep.isYalc &&
+    (!dep.isPeerOptionalDependency || !!dep.installedVersion);
 
 const reportPeerDependencyStatus = (dep: Dependency, byDepender: boolean, showSatisfiedDep: boolean, verbose: boolean) => {
   const message = byDepender ?
@@ -41,16 +42,16 @@ const reportPeerDependencyStatus = (dep: Dependency, byDepender: boolean, showSa
     }
   } else if (dep.isYalc) {
     console.log(`  ☑️  ${message} (${dep.installedVersion} is installed via yalc)`);
-  } else if (dep.installedVersion && dep.isPeerOptionalDependency) {
-    if (verbose) {
-      console.log(`  ☑️   ${message}) OPTIONAL (${dep.installedVersion} is installed)`);
-    }
   } else if (dep.isIgnored) {
     if (verbose) {
       console.log(`  ☑️   ${message} IGNORED (${dep.name} is not installed)`);
     }
   } else if (dep.installedVersion) {
-    console.log(`  ❌  ${message}) (${dep.installedVersion} is installed)`);
+    if (dep.isPeerOptionalDependency) {
+      console.log(`  ❌  ${message}) OPTIONAL (${dep.installedVersion} is installed)`);
+    } else {
+      console.log(`  ❌  ${message}) (${dep.installedVersion} is installed)`);
+    }
   } else if (dep.isPeerOptionalDependency) {
     if (verbose) {
       console.log(`  ☑️   ${message} OPTIONAL (${dep.name} is not installed)`);
