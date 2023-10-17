@@ -1,3 +1,13 @@
+# 4.3.0 (2023-10-17)
+[Compare `check-peer-dependencies` versions 4.2.0 and 4.3.0](https://github.com/christopherthielen/check-peer-dependencies/compare/4.2.0...4.3.0)
+
+### Bug Fixes
+
+* non-satisfied optional dependency should fail ([7d43b0d](https://github.com/christopherthielen/check-peer-dependencies/commit/7d43b0d))
+
+
+
+
 # 4.2.0 (2023-03-13)
 [Compare `check-peer-dependencies` versions 4.1.0 and 4.2.0](https://github.com/christopherthielen/check-peer-dependencies/compare/4.1.0...4.2.0)
 
