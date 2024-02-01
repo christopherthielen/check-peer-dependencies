@@ -2,7 +2,7 @@
   "name": "check-peer-dependencies",
   "version": "4.3.0",
   "description": "Checks peer dependencies of the current package.  Offers solutions for any that are unmet.",
-  "main": "dist/check_peer_dependencies.js",
+  "main": "dist/checkPeerDependencies.js",
   "scripts": {
     "build": "tsc",
     "prepublishOnly": "npm run build",
