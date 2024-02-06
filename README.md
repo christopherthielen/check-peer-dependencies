@@ -36,6 +36,9 @@ Options:
                                                       [boolean] [default: false]
       --install                    Install missing or incorrect peerDependencies
                                                       [boolean] [default: false]
+      --includePrerelease          Include prerelease versions when searching
+                                   for solutions
+                                                      [boolean] [default: true]
 ```
 
 ---

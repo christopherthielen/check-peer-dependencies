@@ -19,19 +19,19 @@ export interface Resolution {
   resolutionType: 'upgrade' | 'install' | 'devInstall';
 }
 
-export function findPossibleResolutions(problems: Dependency[], allPeerDependencies: Dependency[], ): Resolution[] {
+export function findPossibleResolutions(problems: Dependency[], allPeerDependencies: Dependency[], includePrerelease: boolean): Resolution[] {
   const uniq: Dependency[] = problems.reduce((acc, problem) => acc.some(dep => dep.name === problem.name) ? acc : acc.concat(problem), []);
   return uniq.map(problem => {
     const shouldUpgrade = !!problem.installedVersion;
     const resolutionType = shouldUpgrade ? 'upgrade' : problem.isPeerDevDependency ? 'devInstall' : 'install';
-    const resolutionVersion = findPossibleResolution(problem.name, allPeerDependencies);
+    const resolutionVersion = findPossibleResolution(problem.name, allPeerDependencies, includePrerelease);
     const resolution = resolutionVersion ? `${problem.name}@${resolutionVersion}` : null;
 
     return { problem, resolution, resolutionType } as Resolution;
   })
 }
 
-function findPossibleResolution(packageName, allPeerDeps) {
+function findPossibleResolution(packageName, allPeerDeps, includePrerelease) {
   const requiredPeerVersions = allPeerDeps.filter(dep => dep.name === packageName);
   // todo: skip this step if only one required peer version and it's an exact version
   const command = `npm view ${packageName} versions`;
@@ -40,7 +40,7 @@ function findPossibleResolution(packageName, allPeerDeps) {
     rawVersionsInfo = exec(command, { silent: true }).stdout;
     const availableVersions = JSON.parse(rawVersionsInfo.replace(/'/g, '"')).sort(semverReverseSort);
     return availableVersions.find(ver => requiredPeerVersions.every(peerVer => {
-      return semver.satisfies(ver, peerVer.version, { includePrerelease: true });
+      return semver.satisfies(ver, peerVer.version, { includePrerelease });
     }));
   } catch (err) {
     console.error(`Error while running command: '${command}'`);
