@@ -1,3 +1,9 @@
+# 5.0.0 (2024-03-08)
+
+### BREAKING CHANGES
+
+* ignore the check for peerDependencies of the root package. Reduces strictness on existing checks and might impact your CI workflow.
+
 # 4.3.0 (2023-10-17)
 [Compare `check-peer-dependencies` versions 4.2.0 and 4.3.0](https://github.com/christopherthielen/check-peer-dependencies/compare/4.2.0...4.3.0)
 
