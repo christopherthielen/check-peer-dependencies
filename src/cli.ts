@@ -41,6 +41,12 @@ const options = yarrrrgs
       default: [],
       description: 'package name to ignore (may specify multiple)',
     })
+    .option('scopes', {
+      string:  true,
+      array: true,
+      default: [],
+      description: 'package scopes to limit the results to (may specify multiple)',
+    })
     .option('runOnlyOnRootDependencies', {
         boolean: true,
         default: false,
@@ -70,6 +76,7 @@ export interface CliOptions {
   debug: boolean;
   npm: boolean;
   ignore: string[];
+  scopes: string[];
   runOnlyOnRootDependencies: boolean;
   orderBy: 'depender' | 'dependee';
   findSolutions: boolean;

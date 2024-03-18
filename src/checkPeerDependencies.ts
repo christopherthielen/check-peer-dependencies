@@ -18,8 +18,13 @@ function getAllNestedPeerDependencies(options: CliOptions): Dependency[] {
     return { ...dep, installedVersion, semverSatisfies, isYalc };
   }
 
+  function isIgnoredScope(name: string): boolean {
+    return !!options.scopes.length && !options.scopes.find(scope => name.startsWith(`${scope}/`))
+  }
+
   function applyIgnoreInformation (dep: Dependency): Dependency {
-    const isIgnored = options.ignore.includes(dep.name)
+    const isIgnoredDependency = options.ignore.includes(dep.name)
+    const isIgnored = isIgnoredDependency || isIgnoredScope(dep.name)
     return {...dep, isIgnored}
   }
 

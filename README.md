@@ -29,6 +29,8 @@ Options:
                                    are met            [boolean] [default: false]
       --ignore                     package name to ignore (may specify multiple)
                                                            [array] [default: []]
+      --scopes                     package scopes to include (may specify
+                                   multiple)               [array] [default: []]
       --runOnlyOnRootDependencies  Run tool only on package root dependencies
                                                       [boolean] [default: false]
       --findSolutions              Search for solutions and print package
@@ -43,7 +45,7 @@ Options:
 ## Installing peerDependencies as devDependencies
 
 If a package has a peerDependency that should be installed as a devDependency by,
-it can list the package name in "peerDevDependencies".  
+it can list the package name in "peerDevDependencies".
 This is not a standard and is only understood by this `check-peer-dependencies`.
 
 ```json
@@ -61,7 +63,7 @@ This is not a standard and is only understood by this `check-peer-dependencies`.
 
 ## Example outputs:
 
-### No problems 
+### No problems
 
 ```bash
 ~/projects/uirouter/sample-app-react master
