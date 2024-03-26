@@ -93,7 +93,9 @@ export function walkPackageDependencyTree(packagePath: string, isAncestorDevDepe
     packageDependencies.peerDependencies.forEach(dep => console.log(dep))
   }
 
-  visitor(packagePath, packageJson, packageDependencies);
+  if (!isRootPackage) {
+    visitor(packagePath, packageJson, packageDependencies);
+  }
 
   function walkDependency(dependency: Dependency, isAncestorDevDependency: boolean) {
     if (resolve.isCore(dependency.name)) {
