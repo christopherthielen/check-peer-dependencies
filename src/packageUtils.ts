@@ -36,6 +36,7 @@ export type DependencyType = 'dependencies' | 'devDependencies' | 'peerDependenc
 export interface Dependency {
   name: string;
   version: string;
+  dependerPath: string;
   depender: PackageMeta;
   type: DependencyType
   isPeerOptionalDependency: boolean;
@@ -61,7 +62,7 @@ type DependencyWalkVisitor = (packagePath: string, packageJson: PackageJson, pac
 export function gatherPeerDependencies(packagePath, options: CliOptions): Dependency[] {
   let peerDeps: Dependency[] = [];
   const visitor: DependencyWalkVisitor = (path, json, deps) => {
-    peerDeps = peerDeps.concat(deps.peerDependencies);
+    peerDeps = peerDeps.concat(deps.peerDependencies.map((dep) => ({...dep, dependerPath: path})));
   };
   walkPackageDependencyTree(packagePath, false, visitor, [], options);
 
@@ -138,6 +139,7 @@ function buildDependencyArray(type: Dependency["type"], pkgJson: PackageJson, de
     return {
       name,
       type,
+      dependerPath: './',
       version: dependenciesObject[name],
       isPeerDevDependency,
       isPeerOptionalDependency,
@@ -164,7 +166,8 @@ export function resolvePackageDir(basedir: string, packageName: string) {
   // In resolve() v2.x this callback has a different signature
   // function packageFilter(pkg, pkgfile, pkgdir) {
   function packageFilter(pkg, pkgdir) {
-    if (!packagePath || pkg.version) {
+    // this needs to be like this so that the deeper package is used
+    if (!packagePath || (packagePath.length < pkgdir.length)) {
       packagePath = pkgdir;
     }
     return pkg;

@@ -22,9 +22,15 @@ function getAllNestedPeerDependencies(options: CliOptions): Dependency[] {
     return !!options.scopes.length && !options.scopes.find(scope => name.startsWith(`${scope}/`))
   }
 
+  function isTransitivePeerDependency(path: string): boolean {
+    const paths = options.transitivePaths.map(path => `/${path}/`);
+    const pathIsTransitive = paths.some(transitivePath => path.includes(transitivePath));
+    return !!options.transitivePaths.length && pathIsTransitive;
+  }
+
   function applyIgnoreInformation (dep: Dependency): Dependency {
     const isIgnoredDependency = options.ignore.includes(dep.name)
-    const isIgnored = isIgnoredDependency || isIgnoredScope(dep.name)
+    const isIgnored = isIgnoredDependency || isIgnoredScope(dep.name) || isTransitivePeerDependency(dep.dependerPath)
     return {...dep, isIgnored}
   }
 

@@ -47,6 +47,12 @@ const options = yarrrrgs
       default: [],
       description: 'package scopes to limit the results to (may specify multiple)',
     })
+    .option('transitivePaths', {
+      string:  true,
+      array: true,
+      default: [],
+      description: 'paths to treat as transitive peer dependencies, i.e. they are not required to be installed by the consuming package',
+    })
     .option('runOnlyOnRootDependencies', {
         boolean: true,
         default: false,
@@ -76,6 +82,7 @@ export interface CliOptions {
   debug: boolean;
   npm: boolean;
   ignore: string[];
+  transitivePaths: string[];
   scopes: string[];
   runOnlyOnRootDependencies: boolean;
   orderBy: 'depender' | 'dependee';

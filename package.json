@@ -1,6 +1,6 @@
 {
   "name": "@90poe/check-peer-dependencies",
-  "version": "4.3.1",
+  "version": "4.3.2",
   "description": "Checks peer dependencies of the current package.  Offers solutions for any that are unmet.",
   "main": "dist/check_peer_dependencies.js",
   "scripts": {
@@ -45,5 +45,6 @@
   "publishConfig": {
     "registry": "https://nexus.tools.devopenocean.studio/repository/npm-hosted/",
     "access": "restricted"
-  }
+  },
+  "packageManager": "yarn@1.22.1"
 }
