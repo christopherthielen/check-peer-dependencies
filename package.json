@@ -1,6 +1,6 @@
 {
   "name": "@90poe/check-peer-dependencies",
-  "version": "4.3.2",
+  "version": "4.3.3",
   "description": "Checks peer dependencies of the current package.  Offers solutions for any that are unmet.",
   "main": "dist/check_peer_dependencies.js",
   "scripts": {
@@ -9,9 +9,7 @@
     "release": "release",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "bin": {
-    "check-peer-dependencies": "dist/cli.js"
-  },
+  "bin": "dist/cli.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/christopherthielen/check-peer-dependencies.git"

@@ -45,6 +45,7 @@ export interface Dependency {
   semverSatisfies?: boolean;
   isYalc?: boolean;
   isIgnored?: boolean;
+  isIgnoredTransitiveDependency?: boolean;
 }
 
 interface PackageMeta {
