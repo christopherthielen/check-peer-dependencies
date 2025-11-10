@@ -1,3 +1,6 @@
+# 4.4.0 (2025-11-10)
+* Support 90poe monorepo workspace deps
+
 # 4.2.0 (2023-03-13)
 [Compare `check-peer-dependencies` versions 4.1.0 and 4.2.0](https://github.com/christopherthielen/check-peer-dependencies/compare/4.1.0...4.2.0)
 
@@ -99,7 +102,7 @@
 ### Bug Fixes
 
 * print warning if dependency path is not found instead of erroring. This allows optional dependencies to be ignored. ([37c0296](https://github.com/christopherthielen/check-peer-dependencies/commit/37c0296))
-  
+
 
 
 

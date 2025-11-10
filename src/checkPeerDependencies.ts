@@ -11,14 +11,36 @@ import {
   isSameDep,
 } from './packageUtils';
 import { findPossibleResolutions, Resolution } from './solution';
+import path = require('path');
+import { readJson } from './readJson';
 
 function getAllNestedPeerDependencies(options: CliOptions): Dependency[] {
   const gatheredDependencies = gatherPeerDependencies('.', options);
 
   function applySemverInformation(dep: Dependency): Dependency {
+    const findWorkspacePackageVersion = (
+      packageName: string
+    ): string | undefined => {
+      const base = path.join('..', '..', 'packages');
+      const pkgJsonPath = path.join(base, packageName, 'package.json');
+      const candidatePkg: { version: string } = readJson(pkgJsonPath);
+      return candidatePkg.version;
+    };
+
+    const isWorkspaceVersion = dep.version === 'workspace:*';
+
+    let requiredRange: string = dep.version;
+    if (isWorkspaceVersion) {
+      // custom for 90poe monorepo naming convention
+      const wsVersion = findWorkspacePackageVersion(dep.name.split('/')[1]);
+      if (wsVersion) {
+        requiredRange = wsVersion;
+      }
+    }
+
     const installedVersion = getInstalledVersion(dep);
     const semverSatisfies = installedVersion
-      ? semver.satisfies(installedVersion, dep.version, {
+      ? semver.satisfies(installedVersion, requiredRange, {
           includePrerelease: true,
         })
       : false;
