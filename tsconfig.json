@@ -3,6 +3,7 @@
     "./src/cli.ts"
   ],
   "compilerOptions": {
+    "declaration": true,
     "lib": ["es7"],
     "outDir": "dist",
     "skipLibCheck": true
