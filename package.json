@@ -15,6 +15,9 @@
   "bin": {
     "check-peer-dependencies": "dist/cli.js"
   },
+  "files": [
+    "dist"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/christopherthielen/check-peer-dependencies.git"
