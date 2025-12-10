@@ -36,6 +36,9 @@ Options:
                                                       [boolean] [default: false]
       --install                    Install missing or incorrect peerDependencies
                                                       [boolean] [default: false]
+      --ignoreOptional             Ignore optional peer dependencies entirely,
+                                   even if installed at a mismatched version
+                                                      [boolean] [default: false]
 ```
 
 ---

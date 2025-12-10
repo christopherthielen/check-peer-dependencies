@@ -41,7 +41,12 @@ const options = yarrrrgs
     default: [],
     description: 'package name to ignore (may specify multiple)',
   })
-  .option('runOnlyOnRootDependencies', {
+  .option('ignoreOptional', {
+      boolean: true,
+      default: false,
+      description: 'Ignore optional peer dependencies',
+    })
+    .option('runOnlyOnRootDependencies', {
     boolean: true,
     default: false,
     description: 'Run tool only on package root dependencies',
@@ -70,6 +75,7 @@ export interface CliOptions {
   debug: boolean;
   npm: boolean;
   ignore: string[];
+  ignoreOptional: boolean;
   runOnlyOnRootDependencies: boolean;
   orderBy: 'depender' | 'dependee';
   findSolutions: boolean;
