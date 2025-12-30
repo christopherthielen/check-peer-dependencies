@@ -118,7 +118,7 @@ export function walkPackageDependencyTree(packagePath: string, isAncestorDevDepe
   }
 
   if (isRootPackage) packageDependencies.devDependencies.forEach(dep => walkDependency(dep, true));
-  if (isRootPackage || !options.runOnlyOnRootDependencies) packageDependencies.dependencies.forEach(dep => walkDependency (dep, false));
+  if (isRootPackage || !options.runOnlyOnRootDependencies) packageDependencies.dependencies.forEach(dep => walkDependency(dep, false));
 }
 
 function buildDependencyArray(type: Dependency["type"], pkgJson: PackageJson, depender: PackageMeta, isAncestorDevDependency: boolean): Dependency[] {
@@ -130,7 +130,7 @@ function buildDependencyArray(type: Dependency["type"], pkgJson: PackageJson, de
   const packageNames = Object.keys(dependenciesObject);
 
   return packageNames.map(name => {
-    const isPeerOptionalDependency= !!peerDependenciesMeta[name]?.optional;
+    const isPeerOptionalDependency = !!peerDependenciesMeta[name]?.optional;
     const isPeerDevDependency = isAncestorDevDependency || !!peerDependenciesMeta[name]?.dev || !!peerDevDependencies.includes(name);
 
     return {
@@ -145,7 +145,7 @@ function buildDependencyArray(type: Dependency["type"], pkgJson: PackageJson, de
 }
 
 export function getPackageMeta(packagePath: string, packageJson: PackageJson, isAncestorDevDependency: boolean): PackageMeta {
-  const { name, version} = packageJson;
+  const { name, version } = packageJson;
   const packageMeta = { name, version, packagePath } as PackageMeta;
 
   packageMeta.dependencies = buildDependencyArray("dependencies", packageJson, packageMeta, isAncestorDevDependency);
@@ -191,9 +191,9 @@ export function getInstalledVersion(dep: Dependency): string | undefined {
 }
 
 export function isSameDep(a: Dependency, b: Dependency) {
-  const keys: Array<keyof Dependency> = [ "name", "version", "installedVersion", "semverSatisfies", "isYalc", "isPeerDevDependency", ];
+  const keys: Array<keyof Dependency> = ["name", "version", "installedVersion", "semverSatisfies", "isYalc", "isPeerDevDependency",];
   return keys.every(key => a[key] === b[key]) &&
-      a.depender.name === b.depender.name &&
-      a.depender.version === b.depender.version &&
-      a.depender.packagePath === b.depender.packagePath;
+    a.depender.name === b.depender.name &&
+    a.depender.version === b.depender.version &&
+    a.depender.packagePath === b.depender.packagePath;
 }
