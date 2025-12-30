@@ -1,3 +1,13 @@
+## 4.3.1 (2025-12-30)
+[Compare `check-peer-dependencies` versions 4.3.0 and 4.3.1](https://github.com/christopherthielen/check-peer-dependencies/compare/4.3.0...4.3.1)
+
+### Bug Fixes
+
+* fix yalc detection ([625b279](https://github.com/christopherthielen/check-peer-dependencies/commit/625b279))
+
+
+
+
 # 4.3.0 (2023-10-17)
 [Compare `check-peer-dependencies` versions 4.2.0 and 4.3.0](https://github.com/christopherthielen/check-peer-dependencies/compare/4.2.0...4.3.0)
 
