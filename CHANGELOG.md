@@ -1,3 +1,15 @@
+## 4.3.3 (2026-01-02)
+[Compare `check-peer-dependencies` versions 4.3.0 and 4.3.3](https://github.com/christopherthielen/check-peer-dependencies/compare/4.3.0...4.3.3)
+
+### Bug Fixes
+
+* ?.endsWith to avoid NPE ([e605bbc](https://github.com/christopherthielen/check-peer-dependencies/commit/e605bbc))
+* fix resolving packages that have multiple/nested package.json files ([1088836](https://github.com/christopherthielen/check-peer-dependencies/commit/1088836))
+* fix yalc detection ([625b279](https://github.com/christopherthielen/check-peer-dependencies/commit/625b279))
+
+
+
+
 ## 4.3.2 (2025-12-30)
 [Compare `check-peer-dependencies` versions 4.3.0 and 4.3.2](https://github.com/christopherthielen/check-peer-dependencies/compare/4.3.0...4.3.2)
 
