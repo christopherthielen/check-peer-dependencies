@@ -1,3 +1,13 @@
+## 4.3.4 (2026-01-02)
+[Compare `check-peer-dependencies` versions 4.3.3 and 4.3.4](https://github.com/christopherthielen/check-peer-dependencies/compare/4.3.3...4.3.4)
+
+### Bug Fixes
+
+* handle npm aliases in package resolution ([0a250ec](https://github.com/christopherthielen/check-peer-dependencies/commit/0a250ec))
+
+
+
+
 ## 4.3.3 (2026-01-02)
 [Compare `check-peer-dependencies` versions 4.3.0 and 4.3.3](https://github.com/christopherthielen/check-peer-dependencies/compare/4.3.0...4.3.3)
 
