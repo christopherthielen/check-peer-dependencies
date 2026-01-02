@@ -169,6 +169,14 @@ export function resolvePackageDir(basedir: string, packageName: string) {
     if (!packagePath && pkg.name === packageName) {
       packagePath = pkgdir;
     }
+    // Also accept if the directory path looks correct (handles npm aliases and edge cases)
+    // Check if the path ends with node_modules/packageName
+    if (!packagePath && pkgdir) {
+      const expectedPath = path.sep + 'node_modules' + path.sep + packageName;
+      if (pkgdir.endsWith(expectedPath) || pkgdir.endsWith(expectedPath + path.sep)) {
+        packagePath = pkgdir;
+      }
+    }
     return pkg;
   }
 
