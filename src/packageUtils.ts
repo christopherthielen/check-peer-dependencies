@@ -162,7 +162,11 @@ export function resolvePackageDir(basedir: string, packageName: string) {
   // In resolve() v2.x this callback has a different signature
   // function packageFilter(pkg, pkgfile, pkgdir) {
   function packageFilter(pkg, pkgdir) {
-    if (!packagePath || pkg.version) {
+    // Only accept package.json if the name matches the package being resolved.
+    // This prevents picking up nested package.json files (e.g., terser/dist/package.json)
+    // that may have a different version or no name field.
+    // Only accept the first match to avoid overwriting with a later (possibly incorrect) one.
+    if (!packagePath && pkg.name === packageName) {
       packagePath = pkgdir;
     }
     return pkg;
