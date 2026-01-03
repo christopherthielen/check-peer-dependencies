@@ -61,11 +61,11 @@ const reportPeerDependencyStatus = (dep: Dependency, byDepender: boolean, showSa
   }
 };
 
-function findSolutions(problems: Dependency[], allNestedPeerDependencies: Dependency[]) {
+function findSolutions(problems: Dependency[], allNestedPeerDependencies: Dependency[], options: CliOptions) {
   console.log();
   console.log(`Searching for solutions for ${problems.length} missing dependencies...`);
   console.log();
-  const resolutions: Resolution[] = findPossibleResolutions(problems, allNestedPeerDependencies);
+  const resolutions: Resolution[] = findPossibleResolutions(problems, allNestedPeerDependencies, options.includePrerelease);
   const resolutionsWithSolutions = resolutions.filter(r => r.resolution);
   const nosolution = resolutions.filter(r => !r.resolution);
 
@@ -140,14 +140,14 @@ export function checkPeerDependencies(packageManager: string, options: CliOption
   }
 
   if (options.install) {
-    const { nosolution, resolutionsWithSolutions } = findSolutions(problems, allNestedPeerDependencies);
+    const { nosolution, resolutionsWithSolutions } = findSolutions(problems, allNestedPeerDependencies, options);
     const commandLines = getCommandLines(packageManager, resolutionsWithSolutions);
 
     if (commandLines.length) {
       return installPeerDependencies(commandLines, options, nosolution, packageManager);
     }
   } else if (options.findSolutions) {
-    const { resolutionsWithSolutions } = findSolutions(problems, allNestedPeerDependencies);
+    const { resolutionsWithSolutions } = findSolutions(problems, allNestedPeerDependencies, options);
     const commandLines = getCommandLines(packageManager, resolutionsWithSolutions);
 
     if (commandLines.length) {

@@ -41,6 +41,11 @@ const options = yarrrrgs
       default: [],
       description: 'package name to ignore (may specify multiple)',
     })
+    .option('includePrerelease', {
+      boolean: true,
+      default: true,
+      description: 'Include prerelease versions when searching for solutions',
+    })
     .option('runOnlyOnRootDependencies', {
         boolean: true,
         default: false,
@@ -70,6 +75,7 @@ export interface CliOptions {
   debug: boolean;
   npm: boolean;
   ignore: string[];
+  includePrerelease: boolean;
   runOnlyOnRootDependencies: boolean;
   orderBy: 'depender' | 'dependee';
   findSolutions: boolean;
