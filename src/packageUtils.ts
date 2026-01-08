@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import * as path from "path";
+import * as path from 'path';
 import * as resolve from 'resolve';
 import { CliOptions } from './cli';
 import { readJson } from './readJson';
@@ -37,7 +37,7 @@ export interface Dependency {
   name: string;
   version: string;
   depender: PackageMeta;
-  type: DependencyType
+  type: DependencyType;
   isPeerOptionalDependency: boolean;
   isPeerDevDependency: boolean;
   installedVersion?: string | undefined;
@@ -67,11 +67,17 @@ export function gatherPeerDependencies(packagePath, options: CliOptions): Depend
 
   // Eliminate duplicates
   return peerDeps.reduce((acc: Dependency[], dep: Dependency) => {
-    return acc.some(dep2 => isSameDep(dep, dep2)) ? acc : acc.concat(dep);
+    return acc.some((dep2) => isSameDep(dep, dep2)) ? acc : acc.concat(dep);
   }, [] as Dependency[]);
 }
 
-export function walkPackageDependencyTree(packagePath: string, isAncestorDevDependency: boolean, visitor: DependencyWalkVisitor, visitedPaths: string[], options: CliOptions) {
+export function walkPackageDependencyTree(
+  packagePath: string,
+  isAncestorDevDependency: boolean,
+  visitor: DependencyWalkVisitor,
+  visitedPaths: string[],
+  options: CliOptions
+) {
   const isRootPackage = visitedPaths.length === 0;
 
   if (visitedPaths.includes(packagePath)) {
@@ -90,7 +96,7 @@ export function walkPackageDependencyTree(packagePath: string, isAncestorDevDepe
 
   if (options.debug) {
     console.log(packageJsonPath);
-    packageDependencies.peerDependencies.forEach(dep => console.log(dep))
+    packageDependencies.peerDependencies.forEach((dep) => console.log(dep));
   }
 
   visitor(packagePath, packageJson, packageDependencies);
@@ -103,25 +109,31 @@ export function walkPackageDependencyTree(packagePath: string, isAncestorDevDepe
     const dependencyPath = resolvePackageDir(packagePath, dependency.name);
 
     if (!dependencyPath) {
-      if (packageDependencies.optionalDependencies.some(x => x.name === dependency.name)) {
+      if (packageDependencies.optionalDependencies.some((x) => x.name === dependency.name)) {
         // don't fail if the missing dependency is in optionalDependencies
         if (options.debug) {
           console.log(`Ignoring missing optional dependency ${dependency.name} from ${packagePath}`);
         }
         return;
       } else {
-        throw new Error(`WARN: Unable to resolve package ${dependency.name} from ${packagePath}`)
+        throw new Error(`WARN: Unable to resolve package ${dependency.name} from ${packagePath}`);
       }
     }
 
     walkPackageDependencyTree(dependencyPath, isAncestorDevDependency, visitor, visitedPaths, options);
   }
 
-  if (isRootPackage) packageDependencies.devDependencies.forEach(dep => walkDependency(dep, true));
-  if (isRootPackage || !options.runOnlyOnRootDependencies) packageDependencies.dependencies.forEach(dep => walkDependency(dep, false));
+  if (isRootPackage) packageDependencies.devDependencies.forEach((dep) => walkDependency(dep, true));
+  if (isRootPackage || !options.runOnlyOnRootDependencies)
+    packageDependencies.dependencies.forEach((dep) => walkDependency(dep, false));
 }
 
-function buildDependencyArray(type: Dependency["type"], pkgJson: PackageJson, depender: PackageMeta, isAncestorDevDependency: boolean): Dependency[] {
+function buildDependencyArray(
+  type: Dependency['type'],
+  pkgJson: PackageJson,
+  depender: PackageMeta,
+  isAncestorDevDependency: boolean
+): Dependency[] {
   const dependenciesObject = pkgJson[type] || {};
   const peerDependenciesMeta = pkgJson.peerDependenciesMeta || {};
   // backwards compat
@@ -129,9 +141,10 @@ function buildDependencyArray(type: Dependency["type"], pkgJson: PackageJson, de
 
   const packageNames = Object.keys(dependenciesObject);
 
-  return packageNames.map(name => {
+  return packageNames.map((name) => {
     const isPeerOptionalDependency = !!peerDependenciesMeta[name]?.optional;
-    const isPeerDevDependency = isAncestorDevDependency || !!peerDependenciesMeta[name]?.dev || !!peerDevDependencies.includes(name);
+    const isPeerDevDependency =
+      isAncestorDevDependency || !!peerDependenciesMeta[name]?.dev || !!peerDevDependencies.includes(name);
 
     return {
       name,
@@ -144,14 +157,33 @@ function buildDependencyArray(type: Dependency["type"], pkgJson: PackageJson, de
   });
 }
 
-export function getPackageMeta(packagePath: string, packageJson: PackageJson, isAncestorDevDependency: boolean): PackageMeta {
+export function getPackageMeta(
+  packagePath: string,
+  packageJson: PackageJson,
+  isAncestorDevDependency: boolean
+): PackageMeta {
   const { name, version } = packageJson;
   const packageMeta = { name, version, packagePath } as PackageMeta;
 
-  packageMeta.dependencies = buildDependencyArray("dependencies", packageJson, packageMeta, isAncestorDevDependency);
-  packageMeta.devDependencies = buildDependencyArray("devDependencies", packageJson, packageMeta, isAncestorDevDependency);
-  packageMeta.optionalDependencies = buildDependencyArray("optionalDependencies", packageJson, packageMeta, isAncestorDevDependency);
-  packageMeta.peerDependencies = buildDependencyArray("peerDependencies", packageJson, packageMeta, isAncestorDevDependency);
+  packageMeta.dependencies = buildDependencyArray('dependencies', packageJson, packageMeta, isAncestorDevDependency);
+  packageMeta.devDependencies = buildDependencyArray(
+    'devDependencies',
+    packageJson,
+    packageMeta,
+    isAncestorDevDependency
+  );
+  packageMeta.optionalDependencies = buildDependencyArray(
+    'optionalDependencies',
+    packageJson,
+    packageMeta,
+    isAncestorDevDependency
+  );
+  packageMeta.peerDependencies = buildDependencyArray(
+    'peerDependencies',
+    packageJson,
+    packageMeta,
+    isAncestorDevDependency
+  );
 
   return packageMeta;
 }
@@ -193,7 +225,7 @@ export function resolvePackageDir(basedir: string, packageName: string) {
 }
 
 export function getInstalledVersion(dep: Dependency): string | undefined {
-  const peerDependencyDir = resolvePackageDir(".", dep.name);
+  const peerDependencyDir = resolvePackageDir('.', dep.name);
   if (!peerDependencyDir) {
     return undefined;
   }
@@ -203,9 +235,18 @@ export function getInstalledVersion(dep: Dependency): string | undefined {
 }
 
 export function isSameDep(a: Dependency, b: Dependency) {
-  const keys: Array<keyof Dependency> = ["name", "version", "installedVersion", "semverSatisfies", "isYalc", "isPeerDevDependency",];
-  return keys.every(key => a[key] === b[key]) &&
+  const keys: Array<keyof Dependency> = [
+    'name',
+    'version',
+    'installedVersion',
+    'semverSatisfies',
+    'isYalc',
+    'isPeerDevDependency',
+  ];
+  return (
+    keys.every((key) => a[key] === b[key]) &&
     a.depender.name === b.depender.name &&
     a.depender.version === b.depender.version &&
-    a.depender.packagePath === b.depender.packagePath;
+    a.depender.packagePath === b.depender.packagePath
+  );
 }

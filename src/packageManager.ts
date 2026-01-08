@@ -1,4 +1,4 @@
-import * as fs from "fs";
+import * as fs from 'fs';
 import { Resolution } from './solution';
 
 export function getPackageManager(forceYarn: boolean, forceNpm: boolean) {
@@ -9,9 +9,11 @@ export function getPackageManager(forceYarn: boolean, forceNpm: boolean) {
 }
 
 export function getCommandLines(packageManager: string, resolutions: Resolution[]) {
-  const installs = resolutions.filter(r => r.resolution && r.resolutionType === 'install').map(r => r.resolution);
-  const devInstalls = resolutions.filter(r => r.resolution && r.resolutionType === 'devInstall').map(r => r.resolution);
-  const upgrades = resolutions.filter(r => r.resolution && r.resolutionType === 'upgrade').map(r => r.resolution);
+  const installs = resolutions.filter((r) => r.resolution && r.resolutionType === 'install').map((r) => r.resolution);
+  const devInstalls = resolutions
+    .filter((r) => r.resolution && r.resolutionType === 'devInstall')
+    .map((r) => r.resolution);
+  const upgrades = resolutions.filter((r) => r.resolution && r.resolutionType === 'upgrade').map((r) => r.resolution);
 
   const commands = [];
   if (packageManager === 'yarn') {
