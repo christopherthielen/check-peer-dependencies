@@ -1,21 +1,28 @@
 import * as fs from 'fs';
 import { Resolution } from './solution';
 
-export function getPackageManager(forceYarn: boolean, forceNpm: boolean) {
+export type PackageManager = 'yarn' | 'npm';
+
+export function getPackageManager(forceYarn: boolean, forceNpm: boolean): PackageManager {
   if (forceYarn) return 'yarn';
   if (forceNpm) return 'npm';
   if (fs.existsSync('yarn.lock')) return 'yarn';
-  if (fs.existsSync('package-lock.json')) return 'npm';
+  return 'npm';
 }
 
-export function getCommandLines(packageManager: string, resolutions: Resolution[]) {
-  const installs = resolutions.filter((r) => r.resolution && r.resolutionType === 'install').map((r) => r.resolution);
+export function getCommandLines(packageManager: PackageManager, resolutions: Resolution[]): string[] {
+  const installs = resolutions
+    .filter((r) => r.resolution && r.resolutionType === 'install')
+    .map((r) => r.resolution as string);
   const devInstalls = resolutions
     .filter((r) => r.resolution && r.resolutionType === 'devInstall')
-    .map((r) => r.resolution);
-  const upgrades = resolutions.filter((r) => r.resolution && r.resolutionType === 'upgrade').map((r) => r.resolution);
+    .map((r) => r.resolution as string);
+  const upgrades = resolutions
+    .filter((r) => r.resolution && r.resolutionType === 'upgrade')
+    .map((r) => r.resolution as string);
 
-  const commands = [];
+  const commands: string[] = [];
+
   if (packageManager === 'yarn') {
     if (installs.length) {
       commands.push(`yarn add ${installs.join(' ')}`);
@@ -26,13 +33,14 @@ export function getCommandLines(packageManager: string, resolutions: Resolution[
     if (upgrades.length) {
       commands.push(`yarn upgrade ${upgrades.join(' ')}`);
     }
-  } else if (packageManager === 'npm' && (installs.length || upgrades.length || devInstalls.length)) {
+  } else if (installs.length || upgrades.length || devInstalls.length) {
     if (installs.length || upgrades.length) {
       commands.push(`npm install ${installs.concat(upgrades).join(' ')}`);
     }
     if (devInstalls.length) {
-      commands.push(`npm install -D ${devInstalls}`);
+      commands.push(`npm install -D ${devInstalls.join(' ')}`);
     }
   }
+
   return commands;
 }

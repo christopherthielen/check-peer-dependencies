@@ -1,4 +1,5 @@
 import { readFileSync } from 'fs';
-export function readJson(filename: string) {
-  return JSON.parse(readFileSync(filename).toString('utf-8'));
+
+export function readJson<T = unknown>(filename: string): T {
+  return JSON.parse(readFileSync(filename, 'utf-8')) as T;
 }

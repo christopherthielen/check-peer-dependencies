@@ -3,9 +3,18 @@ import * as semver from 'semver';
 
 import { exec } from 'shelljs';
 import { CliOptions } from './cli';
-import { getCommandLines } from './packageManager';
-import { Dependency, gatherPeerDependencies, getInstalledVersion, isSameDep } from './packageUtils';
+import { getCommandLines, PackageManager } from './packageManager';
+import {
+  Dependency,
+  gatherPeerDependencies,
+  getInstalledVersion,
+  isSameDep,
+  uniqueVersionsForPackage,
+} from './packageUtils';
 import { findPossibleResolutions, Resolution } from './solution';
+
+const PACKAGE_NAME = '@lucavb/check-peer-dependencies';
+const RECURSION_LIMIT = 5;
 
 function getAllNestedPeerDependencies(options: CliOptions): Dependency[] {
   const gatheredDependencies = gatherPeerDependencies('.', options);
@@ -15,7 +24,7 @@ function getAllNestedPeerDependencies(options: CliOptions): Dependency[] {
     const semverSatisfies = installedVersion
       ? semver.satisfies(installedVersion, dep.version, { includePrerelease: true })
       : false;
-    const isYalc = installedVersion?.endsWith('-yalc');
+    const isYalc = installedVersion?.endsWith('-yalc') ?? false;
 
     return { ...dep, installedVersion, semverSatisfies, isYalc };
   }
@@ -30,16 +39,19 @@ function getAllNestedPeerDependencies(options: CliOptions): Dependency[] {
 
 let recursiveCount = 0;
 
-const isProblem = (dep: Dependency, ignoreOptional: boolean) => !dep.semverSatisfies && !dep.isIgnored && !dep.isYalc &&
-    !(ignoreOptional && dep.isPeerOptionalDependency) &&
-    (!dep.isPeerOptionalDependency || !!dep.installedVersion);
+const isProblem = (dep: Dependency, ignoreOptional: boolean): boolean =>
+  !dep.semverSatisfies &&
+  !dep.isIgnored &&
+  !dep.isYalc &&
+  !(ignoreOptional && dep.isPeerOptionalDependency) &&
+  (!dep.isPeerOptionalDependency || !!dep.installedVersion);
 
 const reportPeerDependencyStatus = (
   dep: Dependency,
   byDepender: boolean,
   showSatisfiedDep: boolean,
   verbose: boolean
-) => {
+): void => {
   const message = byDepender
     ? `${dep.depender.name}@${dep.depender.version} requires ${dep.name} ${dep.version}`
     : `${dep.name} ${dep.version} is required by ${dep.depender.name}@${dep.depender.version}`;
@@ -56,9 +68,9 @@ const reportPeerDependencyStatus = (
     }
   } else if (dep.installedVersion) {
     if (dep.isPeerOptionalDependency) {
-      console.log(`  ❌  ${message}) OPTIONAL (${dep.installedVersion} is installed)`);
+      console.log(`  ❌  ${message} OPTIONAL (${dep.installedVersion} is installed)`);
     } else {
-      console.log(`  ❌  ${message}) (${dep.installedVersion} is installed)`);
+      console.log(`  ❌  ${message} (${dep.installedVersion} is installed)`);
     }
   } else if (dep.isPeerOptionalDependency) {
     if (verbose) {
@@ -69,20 +81,21 @@ const reportPeerDependencyStatus = (
   }
 };
 
-function findSolutions(problems: Dependency[], allNestedPeerDependencies: Dependency[]) {
+function findSolutions(
+  problems: Dependency[],
+  allNestedPeerDependencies: Dependency[]
+): { resolutionsWithSolutions: Resolution[]; nosolution: Resolution[] } {
   console.log();
   console.log(`Searching for solutions for ${problems.length} missing dependencies...`);
   console.log();
-  const resolutions: Resolution[] = findPossibleResolutions(problems, allNestedPeerDependencies);
+  const resolutions = findPossibleResolutions(problems, allNestedPeerDependencies);
   const resolutionsWithSolutions = resolutions.filter((r) => r.resolution);
   const nosolution = resolutions.filter((r) => !r.resolution);
 
   nosolution.forEach((solution) => {
     const name = solution.problem.name;
     const errorPrefix = `Unable to find a version of ${name} that satisfies the following peerDependencies:`;
-    const peerDepRanges = allNestedPeerDependencies
-      .filter((dep) => dep.name === name)
-      .reduce((acc, dep) => (acc.includes(dep.version) ? acc : acc.concat(dep.version)), []);
+    const peerDepRanges = uniqueVersionsForPackage(allNestedPeerDependencies, name);
     console.error(`  ❌  ${errorPrefix} ${peerDepRanges.join(' and ')}`);
   });
 
@@ -94,11 +107,11 @@ function findSolutions(problems: Dependency[], allNestedPeerDependencies: Depend
 }
 
 function installPeerDependencies(
-  commandLines: any[],
+  commandLines: string[],
   options: CliOptions,
   nosolution: Resolution[],
-  packageManager: string
-) {
+  packageManager: PackageManager
+): void {
   console.log('Installing peerDependencies...');
   console.log();
   commandLines.forEach((command) => {
@@ -117,31 +130,35 @@ function installPeerDependencies(
 
   if (newProblems.length > 0) {
     console.log(`Found ${newProblems.length} new unmet peerDependencies...`);
-    if (++recursiveCount < 5) {
-      return checkPeerDependencies(packageManager, options);
-    } else {
-      console.error('Recursion limit reached (5)');
-      process.exit(5);
+    if (++recursiveCount < RECURSION_LIMIT) {
+      checkPeerDependencies(packageManager, options);
+      return;
     }
+    console.error(`Recursion limit reached (${RECURSION_LIMIT})`);
+    process.exit(5);
   }
-  return;
 }
 
-function report(options: CliOptions, allNestedPeerDependencies: Dependency[]) {
+function report(options: CliOptions, allNestedPeerDependencies: Dependency[]): void {
   if (options.orderBy === 'depender') {
-    allNestedPeerDependencies.sort((a, b) => `${a.depender}${a.name}`.localeCompare(`${b.depender}${b.name}`));
-  } else if (options.orderBy == 'dependee') {
-    allNestedPeerDependencies.sort((a, b) => `${a.name}${a.depender}`.localeCompare(`${b.name}${b.depender}`));
+    allNestedPeerDependencies.sort((a, b) =>
+      `${a.depender.name}${a.name}`.localeCompare(`${b.depender.name}${b.name}`)
+    );
+  } else {
+    allNestedPeerDependencies.sort((a, b) =>
+      `${a.name}${a.depender.name}`.localeCompare(`${b.name}${b.depender.name}`)
+    );
   }
 
   allNestedPeerDependencies.forEach((dep) => {
     const relatedPeerDeps = allNestedPeerDependencies.filter((other) => other.name === dep.name && other !== dep);
-    const showIfSatisfied = options.verbose || relatedPeerDeps.some((dep) => isProblem(dep, options.ignoreOptional));
+    const showIfSatisfied =
+      options.verbose || relatedPeerDeps.some((related) => isProblem(related, options.ignoreOptional));
     reportPeerDependencyStatus(dep, options.orderBy === 'depender', showIfSatisfied, options.verbose);
   });
 }
 
-export function checkPeerDependencies(packageManager: string, options: CliOptions) {
+export function checkPeerDependencies(packageManager: PackageManager, options: CliOptions): void {
   const allNestedPeerDependencies = getAllNestedPeerDependencies(options);
   report(options, allNestedPeerDependencies);
 
@@ -157,9 +174,12 @@ export function checkPeerDependencies(packageManager: string, options: CliOption
     const commandLines = getCommandLines(packageManager, resolutionsWithSolutions);
 
     if (commandLines.length) {
-      return installPeerDependencies(commandLines, options, nosolution, packageManager);
+      installPeerDependencies(commandLines, options, nosolution, packageManager);
     }
-  } else if (options.findSolutions) {
+    return;
+  }
+
+  if (options.findSolutions) {
     const { resolutionsWithSolutions } = findSolutions(problems, allNestedPeerDependencies);
     const commandLines = getCommandLines(packageManager, resolutionsWithSolutions);
 
@@ -170,17 +190,18 @@ export function checkPeerDependencies(packageManager: string, options: CliOption
       commandLines.forEach((command) => console.log(command));
       console.log();
     }
-  } else {
-    console.log();
-    console.log(`Search for solutions using this command:`);
-    console.log();
-    console.log(`npx check-peer-dependencies --findSolutions`);
-    console.log();
-    console.log(`Install peerDependencies using this command:`);
-    console.log();
-    console.log(`npx check-peer-dependencies --install`);
-    console.log();
+    return;
   }
+
+  console.log();
+  console.log('Search for solutions using this command:');
+  console.log();
+  console.log(`npx ${PACKAGE_NAME} --findSolutions`);
+  console.log();
+  console.log('Install peerDependencies using this command:');
+  console.log();
+  console.log(`npx ${PACKAGE_NAME} --install`);
+  console.log();
 
   process.exit(1);
 }
