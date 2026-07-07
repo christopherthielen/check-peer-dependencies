@@ -1,4 +1,4 @@
-name: 'CI'
+name: CI
 
 on:
   push:
@@ -7,19 +7,29 @@ on:
   pull_request:
 
 jobs:
-  ci:
-    needs: [test]
+  build:
+    name: Build
     runs-on: ubuntu-latest
     steps:
-      - run: true
-  test:
-    name: yarn buildd
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Install Dependencies
-        run: yarn install --pure-lockfile
-      - name: Check Peer Dependencies
-        run: npx check-peer-dependencies
-      - name: Run Tests
-        run: yarn build
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate commit messages
+        if: github.event_name == 'pull_request'
+        run: npx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
+
+      - name: Build
+        run: npm run build
+
+      - name: Self-check
+        run: node dist/cli.js

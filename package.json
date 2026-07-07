@@ -1,12 +1,14 @@
 {
-  "name": "check-peer-dependencies",
+  "name": "@lucavb/check-peer-dependencies",
   "version": "4.3.4",
   "description": "Checks peer dependencies of the current package.  Offers solutions for any that are unmet.",
   "main": "dist/checkPeerDependencies.js",
+  "types": "dist/checkPeerDependencies.d.ts",
   "scripts": {
     "build": "tsc",
     "prepublishOnly": "npm run build",
-    "release": "release",
+    "publishd": "npm publish --dry-run",
+    "release": "semantic-release",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepare": "husky",
     "format": "prettier --write \"src/**/*.ts\""
@@ -14,9 +16,12 @@
   "bin": {
     "check-peer-dependencies": "dist/cli.js"
   },
+  "files": [
+    "dist"
+  ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/christopherthielen/check-peer-dependencies.git"
+    "url": "git+https://github.com/lucavb/check-peer-dependencies.git"
   },
   "keywords": [
     "nodejs",
@@ -24,12 +29,16 @@
     "peer",
     "dependencies"
   ],
-  "author": "Chris Thielen",
+  "author": {
+    "name": "Luca Becker",
+    "email": "hello@luca-becker.me",
+    "url": "https://luca-becker.me"
+  },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/christopherthielen/check-peer-dependencies/issues"
+    "url": "https://github.com/lucavb/check-peer-dependencies/issues"
   },
-  "homepage": "https://github.com/christopherthielen/check-peer-dependencies#readme",
+  "homepage": "https://github.com/lucavb/check-peer-dependencies#readme",
   "dependencies": {
     "resolve": "^1.19.0",
     "semver": "^7.3.4",
@@ -37,14 +46,26 @@
     "yargs": "^16.2.0"
   },
   "devDependencies": {
-    "@types/node": "^14.14.16",
+    "@commitlint/cli": "^21.2.0",
+    "@commitlint/config-conventional": "^21.2.0",
+    "@commitlint/types": "^21.2.0",
+    "@semantic-release/commit-analyzer": "^13.0.0",
+    "@semantic-release/github": "^12.0.0",
+    "@semantic-release/npm": "^13.0.0",
+    "@semantic-release/release-notes-generator": "^14.0.0",
+    "@types/node": "^24.0.0",
+    "@types/resolve": "^1.20.6",
     "@types/semver": "^7.3.4",
     "@types/shelljs": "^0.8.8",
     "@types/yargs": "^15.0.12",
-    "@uirouter/publish-scripts": "^2.5.4",
+    "cosmiconfig": "^9.0.2",
     "husky": "^9.1.7",
     "prettier": "^3.7.4",
     "pretty-quick": "^4.2.2",
-    "typescript": "^4.1.3"
+    "semantic-release": "^25.0.0",
+    "typescript": "^6.0.3"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

@@ -1,21 +1,23 @@
-## check-peer-dependencies
+## @lucavb/check-peer-dependencies
 
-**Checks peer dependencies of the current NodeJS package.  Offers solutions for any that are unmet.**
+**Checks peer dependencies of the current NodeJS package. Offers solutions for any that are unmet.**
+
+Maintained fork of [check-peer-dependencies](https://github.com/christopherthielen/check-peer-dependencies) by Chris Thielen. Published as `@lucavb/check-peer-dependencies` on npm. Releases are automated via GitHub Actions on `master`.
 
 This utility will recursively find all `peerDependencies` in your project's `dependencies` list.
 It checks if you have installed a package that meets the required peer dependency versions.
-If any peer dependencies are *unmet*, it will search for a compatible version to install.
+If any peer dependencies are _unmet_, it will search for a compatible version to install.
 
 Note: you must run `npm install` or `yarn` first in order to install all normal dependencies.
 
 usage:
 
 ```bash
-npx check-peer-dependencies [--yarn|--npm] [--install] [--help]
+npx @lucavb/check-peer-dependencies [--yarn|--npm] [--install] [--help]
 ```
 
-
 Options:
+
 ```
   -h, --help                       Print usage information             [boolean]
       --version                    Show version number                 [boolean]
@@ -36,6 +38,25 @@ Options:
                                                       [boolean] [default: false]
       --install                    Install missing or incorrect peerDependencies
                                                       [boolean] [default: false]
+      --ignoreOptional             Ignore optional peer dependencies entirely,
+                                   even if installed at a mismatched version
+                                                      [boolean] [default: false]
+```
+
+---
+
+## Development
+
+```bash
+npm ci
+npm run build
+node dist/cli.js
+```
+
+Dry-run a release locally (requires `GITHUB_TOKEN`):
+
+```bash
+npx semantic-release --dry-run
 ```
 
 ---
@@ -61,7 +82,7 @@ This is not a standard and is only understood by this `check-peer-dependencies`.
 
 ## Example outputs:
 
-### No problems 
+### No problems
 
 ```bash
 ~/projects/uirouter/sample-app-react master
@@ -94,4 +115,3 @@ Searching for solutions:
 
 yarn upgrade @angular/router@8.2.10
 ```
-
