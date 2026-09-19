@@ -487,9 +487,83 @@ test('output preserves ordinary text and renders terminal controls visibly', () 
     logError(new Error(payload));
     assert.deepStrictEqual(stdout, [normal, '', escaped]);
     assert.ok(stderr[0].includes(escaped));
-    assert.ok(!/[\x00-\x1f\x7f-\x9f\u2028-\u202e\u2066-\u2069]/.test(stderr[0]));
+    assert.ok(stderr[0].includes('\n    at '));
+    assert.ok(!/[\x00-\x09\x0b-\x1f\x7f-\x9f\u2028-\u202e\u2066-\u2069]/.test(stderr[0]));
   } finally {
     console.log = originalLog;
+    console.error = originalError;
+  }
+});
+
+test('debug objects retain readable layout and escape nested metadata without mutating it', () => {
+  const { log } = require('../dist/output');
+  const { formatWithOptions, inspect } = require('util');
+  const originalLog = console.log;
+  const output = [];
+  const ordinary = { name: 'peer', type: 'peerDependencies', version: '^1', depender: { name: 'provider' } };
+  ordinary.depender.peerDependencies = [ordinary];
+  const hostile = { ['name\nFORGED']: 'peer\nFORGED\x1b[2J\u202e', nested: [ordinary] };
+  hostile.self = hostile;
+  hostile[inspect.custom] = () => {
+    throw new Error('custom inspector must not run');
+  };
+  Object.defineProperty(hostile, 'getter', {
+    enumerable: true,
+    get() {
+      throw new Error('getter must not run');
+    },
+  });
+  try {
+    console.log = (text) => output.push(text);
+    log(ordinary);
+    log(hostile);
+    assert.strictEqual(output[0], formatWithOptions({ colors: false, customInspect: false }, ordinary));
+    assert.ok(output[0].includes('\n  name:'));
+    assert.ok(!output[0].includes('\\u000a'));
+    assert.ok(output[1].includes('\\u000aFORGED'));
+    assert.ok(!output[1].includes('\nFORGED'));
+    assert.ok(!/[\x00-\x09\x0b-\x1f\x7f-\x9f\u2028-\u202e\u2066-\u2069]/.test(output[1]));
+    assert.strictEqual(hostile['name\nFORGED'], 'peer\nFORGED\x1b[2J\u202e');
+    assert.strictEqual(hostile.self, hostile);
+    let deep = {};
+    for (let i = 0; i < 10000; i++) deep = { nested: deep };
+    log(deep);
+    assert.ok(output[2].includes('[Object]'));
+    log('%s', Buffer.from('registry\nFORGED\x1b[2J'));
+    assert.strictEqual(output[3], 'registry\\u000aFORGED\\u001b[2J');
+  } finally {
+    console.log = originalLog;
+  }
+});
+
+test('error messages cannot forge stack frames and normal errors retain their stack layout', () => {
+  const { logError } = require('../dist/output');
+  const { formatWithOptions } = require('util');
+  const originalError = console.error;
+  const output = [];
+  const ordinary = new Error('Unable to resolve package missing from .');
+  const message = 'failed\n    at FORGED (fake.js:1:1)\nSUCCESS\x1b[2J';
+  const hostile = new Error(message);
+  hostile.stderr = 'registry output\nSUCCESS\u202e';
+  const originalStack = hostile.stack;
+  const outer = new Error('outer');
+  Object.defineProperty(outer, 'cause', { value: hostile });
+  try {
+    console.error = (text) => output.push(text);
+    logError(ordinary);
+    logError(hostile);
+    logError(outer);
+    assert.strictEqual(output[0], formatWithOptions({ colors: false, customInspect: false }, ordinary));
+    for (const text of output.slice(1)) {
+      assert.ok(text.includes('\\u000a    at FORGED'));
+      assert.ok(!text.includes('\n    at FORGED'));
+      assert.ok(!text.includes('\nSUCCESS'));
+      assert.ok(/\n\s+at /.test(text));
+      assert.ok(!/[\x00-\x09\x0b-\x1f\x7f-\x9f\u2028-\u202e\u2066-\u2069]/.test(text));
+    }
+    assert.strictEqual(hostile.message, message);
+    assert.strictEqual(hostile.stack, originalStack);
+  } finally {
     console.error = originalError;
   }
 });
@@ -509,7 +583,7 @@ test('registry errors and invalid responses cannot emit terminal controls', () =
       assert.strictEqual(resolve('peer'), null);
     }
     assert.ok(output.join('\n').includes('\\u001b[2J'));
-    assert.ok(!/[\x00-\x1f\x7f-\x9f\u2028-\u202e\u2066-\u2069]/.test(output.join('')));
+    assert.ok(!/[\x00-\x09\x0b-\x1f\x7f-\x9f\u2028-\u202e\u2066-\u2069]/.test(output.join('')));
   } finally {
     childProcess.execFileSync = originalExec;
     console.error = originalError;
