@@ -222,6 +222,10 @@ test('Windows npm, Yarn and Corepack launch JS entry points directly through Nod
       ['yarn', 'node_modules/yarn/bin/yarn.js'],
       ['yarn', 'node_modules/corepack/dist/yarn.js'],
       ['yarn', 'yarn.js'],
+      ['npm', '../npm/bin/npm-cli.js'],
+      ['npm', '../corepack/dist/npm.js'],
+      ['yarn', '../yarn/bin/yarn.js'],
+      ['yarn', '../corepack/dist/yarn.js'],
     ]) {
       const script = path.resolve(dir, relativeScript);
       fs.existsSync = (file) => file === path.join(dir, `${manager}.cmd`) || file === script;
@@ -263,6 +267,63 @@ test('Windows npm, Yarn and Corepack launch JS entry points directly through Nod
     fs.existsSync = existsSync;
     process.env.PATH = originalPath;
     Object.defineProperty(process, 'platform', platformDescriptor);
+  }
+});
+
+test('Windows local shims launch real child processes with literal arguments', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'peer windows local '));
+  const originalPath = process.env.PATH;
+  try {
+    Object.defineProperty(process, 'platform', { value: 'win32' });
+    for (const [manager, entry] of [
+      ['npm', 'npm/bin/npm-cli.js'],
+      ['npm', 'corepack/dist/npm.js'],
+      ['yarn', 'yarn/bin/yarn.js'],
+      ['yarn', 'corepack/dist/yarn.js'],
+    ]) {
+      const root = path.join(dir, manager + '-' + entry.split('/')[0]);
+      const bin = path.join(root, 'node_modules', '.bin');
+      const script = path.join(root, 'node_modules', entry);
+      const log = path.join(root, 'calls.jsonl');
+      const marker = path.join(root, 'marker');
+      fs.mkdirSync(bin, { recursive: true });
+      fs.mkdirSync(path.dirname(script), { recursive: true });
+      fs.writeFileSync(path.join(bin, `${manager}.cmd`), `@node "%~dp0\\..\\${entry.replace(/\//g, '\\')}" %*\r\n`);
+      fs.writeFileSync(
+        script,
+        `
+const fs = require('fs');
+const args = process.argv.slice(2);
+fs.appendFileSync(${JSON.stringify(log)}, JSON.stringify(args) + '\\n');
+if (args[0] === 'view') console.log('["1.0.0"]');
+`
+      );
+      process.env.PATH = bin + path.delimiter + originalPath;
+      const payload = `peer@1; echo "quoted" & echo owned > ${marker}`;
+      const command = getInstallCommands(manager, [resolution(payload)])[0];
+      assert.deepStrictEqual(getPackageManagerProcess(manager, command.args), {
+        executable: process.execPath,
+        args: [script, ...command.args],
+      });
+      runInstallCommand(command);
+      const expected = [command.args];
+      if (manager === 'npm') {
+        assert.strictEqual(resolve('peer'), 'peer@1.0.0');
+        expected.push(['view', 'peer', 'versions', '--json']);
+      }
+      const calls = fs.readFileSync(log, 'utf8').trim().split('\n').map(JSON.parse);
+      assert.deepStrictEqual(calls, expected);
+      assert.strictEqual(fs.existsSync(marker), false);
+    }
+    const customBin = path.join(dir, 'custom');
+    fs.mkdirSync(customBin);
+    fs.writeFileSync(path.join(customBin, 'npm.cmd'), '@echo custom\r\n');
+    process.env.PATH = customBin + path.delimiter + process.env.PATH;
+    assert.throws(() => getPackageManagerProcess('npm', []), /Cannot locate a shell-free/);
+  } finally {
+    process.env.PATH = originalPath;
+    Object.defineProperty(process, 'platform', platformDescriptor);
+    fs.rmSync(dir, { recursive: true, force: true });
   }
 });
 

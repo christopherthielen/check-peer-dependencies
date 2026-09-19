@@ -10,8 +10,19 @@ export function getPackageManagerProcess(executable: PackageManager, args: strin
 
   const entryPoints =
     executable === 'npm'
-      ? ['node_modules/npm/bin/npm-cli.js', 'node_modules/corepack/dist/npm.js']
-      : ['node_modules/yarn/bin/yarn.js', 'node_modules/corepack/dist/yarn.js', 'yarn.js'];
+      ? [
+          'node_modules/npm/bin/npm-cli.js',
+          'node_modules/corepack/dist/npm.js',
+          '../npm/bin/npm-cli.js',
+          '../corepack/dist/npm.js',
+        ]
+      : [
+          'node_modules/yarn/bin/yarn.js',
+          'node_modules/corepack/dist/yarn.js',
+          'yarn.js',
+          '../yarn/bin/yarn.js',
+          '../corepack/dist/yarn.js',
+        ];
   const pathValue = process.env.PATH || process.env.Path || '';
   const directories = pathValue.split(path.delimiter).filter(Boolean);
   for (const directory of directories) {
