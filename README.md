@@ -59,6 +59,17 @@ This is not a standard and is only understood by this `check-peer-dependencies`.
 }
 ```
 
+## Development
+
+Use Node.js 22 or newer and npm 11 for development. Commit dependency changes
+with `package-lock.json`, the repository’s only lockfile.
+
+```sh
+npm ci
+npm run build
+npm run format
+```
+
 ## Example outputs:
 
 ### No problems 
