@@ -13,7 +13,7 @@ jobs:
     steps:
       - run: true
   test:
-    name: Build (${{ matrix.os }})
+    name: Security tests and build (${{ matrix.os }})
     strategy:
       fail-fast: false
       matrix:
@@ -30,8 +30,8 @@ jobs:
         run: npm ci
       - name: Check Formatting
         run: npm run format:check
-      - name: Build
-        run: npm run build
+      - name: Run Security Tests
+        run: npm test
       - name: Check Peer Dependencies
         run: node dist/cli.js
       - name: Pack Consumer Artifact
