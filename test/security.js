@@ -420,4 +420,51 @@ else {
     }
   });
 }
+test('long whitespace ranges complete during reporting and solution matching', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'peer-range-'));
+  const range = '1.0.0' + ' '.repeat(100000) + 'x';
+  const writePackage = (directory, pkg) => {
+    fs.mkdirSync(directory, { recursive: true });
+    fs.writeFileSync(path.join(directory, 'package.json'), JSON.stringify(pkg));
+    fs.writeFileSync(path.join(directory, 'index.js'), '');
+  };
+  try {
+    writePackage(dir, { name: 'fixture', version: '1.0.0', dependencies: { provider: '1.0.0' } });
+    writePackage(path.join(dir, 'node_modules', 'provider'), {
+      name: 'provider',
+      version: '1.0.0',
+      main: 'index.js',
+      peerDependencies: { peer: range },
+    });
+    writePackage(path.join(dir, 'node_modules', 'peer'), { name: 'peer', version: '1.0.0', main: 'index.js' });
+    const report = childProcess.spawnSync(process.execPath, [path.resolve(__dirname, '../dist/cli.js')], {
+      cwd: dir,
+      encoding: 'utf8',
+      timeout: 5000,
+      killSignal: 'SIGKILL',
+    });
+    assert.ifError(report.error);
+    assert.strictEqual(report.status, 0, report.stderr);
+    assert.match(report.stdout, /All peer dependencies are met/);
+
+    const script = `
+require('child_process').execFileSync = () => '["1.0.0"]';
+const { findPossibleResolutions } = require(${JSON.stringify(path.resolve(__dirname, '../dist/solution'))});
+const dep = { name: 'peer', version: '1.0.0' + ' '.repeat(100000) + 'x' };
+console.log(findPossibleResolutions([dep], [dep])[0].resolution);
+`;
+    const solution = childProcess.spawnSync(process.execPath, ['-e', script], {
+      cwd: dir,
+      encoding: 'utf8',
+      timeout: 5000,
+      killSignal: 'SIGKILL',
+    });
+    assert.ifError(solution.error);
+    assert.strictEqual(solution.status, 0, solution.stderr);
+    assert.strictEqual(solution.stdout.trim(), 'peer@1.0.0');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 console.log(`${passed} security regression tests passed`);
