@@ -3,6 +3,7 @@
 import * as yarrrrgs from 'yargs';
 import { checkPeerDependencies } from './checkPeerDependencies';
 import { getPackageManager } from './packageManager';
+import { logError } from './output';
 
 const options = yarrrrgs
   .pkgConf('checkPeerDependencies')
@@ -81,4 +82,9 @@ if (options.help) {
 }
 
 const packageManager = getPackageManager(options.yarn, options.npm);
-checkPeerDependencies(packageManager, options);
+try {
+  checkPeerDependencies(packageManager, options);
+} catch (err) {
+  logError(err);
+  process.exitCode = 1;
+}

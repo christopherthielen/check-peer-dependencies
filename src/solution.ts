@@ -2,6 +2,7 @@ import * as semver from 'semver';
 import { execFileSync } from 'child_process';
 import { Dependency } from './packageUtils';
 import { getPackageManagerProcess } from './packageManagerProcess';
+import { logError } from './output';
 
 function semverReverseSort(a, b) {
   const lt = semver.lt(a, b);
@@ -46,7 +47,7 @@ function findPossibleResolution(packageName, allPeerDeps) {
     !packageNamePattern.test(packageName) ||
     (!packageName.startsWith('@') && /\.(?:tgz|tar\.gz|tar)$/i.test(packageName))
   ) {
-    console.error(`Invalid peer dependency package name: ${JSON.stringify(packageName)}`);
+    logError(`Invalid peer dependency package name: ${JSON.stringify(packageName)}`);
     return;
   }
   let rawVersionsInfo;
@@ -69,10 +70,10 @@ function findPossibleResolution(packageName, allPeerDeps) {
       })
     );
   } catch (err) {
-    console.error(`Error fetching npm versions for ${JSON.stringify(packageName)}`);
-    console.error(err);
-    console.error();
-    console.error('npm output:');
-    console.error(rawVersionsInfo);
+    logError(`Error fetching npm versions for ${JSON.stringify(packageName)}`);
+    logError(err);
+    logError();
+    logError('npm output:');
+    logError(rawVersionsInfo);
   }
 }

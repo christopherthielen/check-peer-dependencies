@@ -467,4 +467,109 @@ console.log(findPossibleResolutions([dep], [dep])[0].resolution);
   }
 });
 
+test('output preserves ordinary text and renders terminal controls visibly', () => {
+  const { escapeTerminalText, log, logError } = require('../dist/output');
+  const normal = '✅ @scope/peer@1.2.3 — café';
+  assert.strictEqual(escapeTerminalText(normal), normal);
+  const payload = '\x1b[2J\x1b]52;c;Zm9yZ2Vk\x07\r\n\t\b\x7f\x9b2J\u202e\u2066';
+  const escaped = '\\u001b[2J\\u001b]52;c;Zm9yZ2Vk\\u0007\\u000d\\u000a\\u0009\\u0008\\u007f\\u009b2J\\u202e\\u2066';
+  assert.strictEqual(escapeTerminalText(payload), escaped);
+  const originalLog = console.log;
+  const originalError = console.error;
+  const stdout = [];
+  const stderr = [];
+  try {
+    console.log = (text) => stdout.push(text);
+    console.error = (text) => stderr.push(text);
+    log(normal);
+    log();
+    log('%s', payload);
+    logError(new Error(payload));
+    assert.deepStrictEqual(stdout, [normal, '', escaped]);
+    assert.ok(stderr[0].includes(escaped));
+    assert.ok(!/[\x00-\x1f\x7f-\x9f\u2028-\u202e\u2066-\u2069]/.test(stderr[0]));
+  } finally {
+    console.log = originalLog;
+    console.error = originalError;
+  }
+});
+
+test('registry errors and invalid responses cannot emit terminal controls', () => {
+  const originalExec = childProcess.execFileSync;
+  const originalError = console.error;
+  const output = [];
+  try {
+    console.error = (text) => output.push(text);
+    for (const fail of [false, true]) {
+      childProcess.execFileSync = () => {
+        const payload = '\x1b[2J\x9b2J\rFORGED\u202e';
+        if (fail) throw new Error(payload);
+        return payload;
+      };
+      assert.strictEqual(resolve('peer'), null);
+    }
+    assert.ok(output.join('\n').includes('\\u001b[2J'));
+    assert.ok(!/[\x00-\x1f\x7f-\x9f\u2028-\u202e\u2066-\u2069]/.test(output.join('')));
+  } finally {
+    childProcess.execFileSync = originalExec;
+    console.error = originalError;
+  }
+});
+
+test('CLI escapes hostile dependency metadata in reports, debug output and failures', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'peer-output-'));
+  const controls = '\x1b[2J\x9b2J\r\nFORGED\x07\u202e';
+  const writePackage = (directory, pkg) => {
+    fs.mkdirSync(directory, { recursive: true });
+    fs.writeFileSync(path.join(directory, 'package.json'), JSON.stringify(pkg));
+    fs.writeFileSync(path.join(directory, 'index.js'), '');
+  };
+  try {
+    writePackage(dir, { name: 'fixture', version: '1.0.0', dependencies: { provider: '1.0.0' } });
+    const provider = path.join(dir, 'node_modules', 'provider');
+    writePackage(provider, {
+      name: 'provider' + controls,
+      version: '1.0.0' + controls,
+      main: 'index.js',
+      peerDependencies: { ['peer' + controls]: '^1.0.0' + controls, installed: '^1.0.0' },
+    });
+    writePackage(path.join(dir, 'node_modules', 'installed'), {
+      name: 'installed',
+      version: '1.0.0' + controls,
+      main: 'index.js',
+    });
+    const preload = path.join(dir, 'registry.js');
+    fs.writeFileSync(preload, `require('child_process').execFileSync = () => '[]';`);
+    const run = (args) =>
+      childProcess.spawnSync(
+        process.execPath,
+        ['--require', preload, path.resolve(__dirname, '../dist/cli.js'), ...args],
+        { cwd: dir, encoding: 'utf8', timeout: 5000 }
+      );
+    for (const args of [[], ['--verbose'], ['--debug'], ['--findSolutions']]) {
+      const result = run(args);
+      assert.ifError(result.error);
+      assert.strictEqual(result.status, 1, result.stderr);
+      const output = result.stdout + result.stderr;
+      assert.ok(output.includes('\\u001b[2J'), output);
+      assert.ok(output.includes('\\u000aFORGED'), output);
+      assert.ok(!/[\x00-\x09\x0b-\x1f\x7f-\x9f\u2028-\u202e\u2066-\u2069]/.test(output));
+    }
+    writePackage(provider, {
+      name: 'provider',
+      version: '1.0.0',
+      main: 'index.js',
+      dependencies: { ['missing' + controls]: '*' },
+    });
+    const failure = run([]);
+    assert.ifError(failure.error);
+    assert.strictEqual(failure.status, 1);
+    assert.ok(failure.stderr.includes('Unable to resolve package'));
+    assert.ok(failure.stderr.includes('\\u001b[2J'));
+    assert.ok(!/[\x00-\x09\x0b-\x1f\x7f-\x9f\u2028-\u202e\u2066-\u2069]/.test(failure.stderr));
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 console.log(`${passed} security regression tests passed`);
