@@ -118,6 +118,6 @@ validated version returned by the registry. Printed installation commands are qu
 shells; they are never used to execute automatic installation.
 
 On Windows, standard npm, Yarn Classic and Corepack `.cmd` installations on `PATH` are supported by
-launching their JavaScript entry points with Node. Custom shims without a recognized entry
+launching their JavaScript entry points with Node, including project-local `node_modules/.bin` shims. Custom shims without a recognized entry
 point fail rather than falling back to shell execution. Printed POSIX commands are not intended for
 PowerShell or cmd.exe. Installing packages still runs the package manager's normal lifecycle scripts.
