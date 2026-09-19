@@ -1,8 +1,12 @@
 {
-  "files": [
-    "./src/cli.ts"
-  ],
+  "files": ["./src/cli.ts"],
   "compilerOptions": {
+    "target": "es2017",
+    "module": "Node16",
+    "moduleResolution": "Node16",
+    "rootDir": "src",
+    "types": ["node"],
+    "strict": false,
     "lib": ["es7"],
     "outDir": "dist",
     "skipLibCheck": true
