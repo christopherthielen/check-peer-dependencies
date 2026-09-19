@@ -41,7 +41,7 @@
     "@types/semver": "^7.3.4",
     "@types/shelljs": "^0.8.8",
     "@types/yargs": "^15.0.12",
-    "@uirouter/publish-scripts": "^2.5.4",
+    "@uirouter/publish-scripts": "^2.8.0",
     "husky": "^9.1.7",
     "prettier": "^3.7.4",
     "pretty-quick": "^4.2.2",
