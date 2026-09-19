@@ -1,6 +1,8 @@
 import { formatWithOptions } from 'util';
 
 export function escapeTerminalText(text: string): string {
+  // Package metadata can contain terminal controls, misleading line breaks, or text direction changes.
+  // Show those characters as text so they can't alter the terminal or forge output.
   return text.replace(
     /[\u0000-\u001f\u007f-\u009f\u2028-\u202e\u2066-\u2069]/g,
     (character) => '\\u' + character.charCodeAt(0).toString(16).padStart(4, '0')
@@ -14,7 +16,7 @@ function escapeErrorStack(error: Error): string {
     return escapeTerminalText(stack);
   }
 
-  // Remove the complete message before recognizing V8's stack frame separators.
+  // The message can contain fake stack frames, so separate it before preserving V8's frame layout.
   const frames = stack.slice(header.length).split('\n    at ');
   return escapeTerminalText(header) + frames.map(escapeTerminalText).join('\n    at ');
 }
@@ -27,6 +29,7 @@ function escapeValue(value: unknown, seen: WeakMap<object, unknown>, depth = 4):
   if (value === null || typeof value !== 'object') return value;
   if (seen.has(value)) return seen.get(value);
 
+  // Copy values so logging leaves them alone, and reuse copies for circular references.
   const escaped =
     value instanceof Error ? new Error(escapeTerminalText(value.message)) : Array.isArray(value) ? [] : {};
   seen.set(value, escaped);
@@ -37,6 +40,7 @@ function escapeValue(value: unknown, seen: WeakMap<object, unknown>, depth = 4):
   // util.format inspects objects to at most four levels, including the %o format.
   if (depth < 0) return escaped;
 
+  // Read descriptors so logging doesn't run getters.
   for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(value))) {
     if (value instanceof Error && ['name', 'message', 'stack'].includes(key)) continue;
     if (!descriptor.enumerable && !(value instanceof Error && key === 'cause')) continue;
@@ -51,6 +55,7 @@ function escapeValue(value: unknown, seen: WeakMap<object, unknown>, depth = 4):
 }
 
 function formatOutput(values: unknown[]): string {
+  // Escape the data first, then let the formatter add readable line breaks.
   const seen = new WeakMap<object, unknown>();
   return formatWithOptions({ colors: false, customInspect: false }, ...values.map((value) => escapeValue(value, seen)));
 }
