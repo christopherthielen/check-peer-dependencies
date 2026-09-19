@@ -13,13 +13,18 @@ jobs:
     steps:
       - run: true
   test:
-    name: yarn buildd
+    name: Build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Set up npm
+        run: npm install --global npm@11.19.0
       - name: Install Dependencies
-        run: yarn install --pure-lockfile
+        run: npm ci
+      - name: Build
+        run: npm run build
       - name: Check Peer Dependencies
-        run: npx check-peer-dependencies
-      - name: Run Tests
-        run: yarn build
+        run: node dist/cli.js

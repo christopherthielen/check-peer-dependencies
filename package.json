@@ -46,5 +46,12 @@
     "prettier": "^3.7.4",
     "pretty-quick": "^4.2.2",
     "typescript": "^4.1.3"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "npm",
+      "version": "11.x",
+      "onFail": "warn"
+    }
   }
 }
