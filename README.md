@@ -117,6 +117,9 @@ options are rejected. Version ranges are used only for semver matching, and inst
 validated version returned by the registry. Printed installation commands are quoted for POSIX
 shells; they are never used to execute automatic installation.
 
+Control characters in checker diagnostics are displayed as visible escapes, so package metadata
+cannot issue terminal commands or insert misleading lines into a report.
+
 On Windows, standard npm, Yarn Classic and Corepack `.cmd` installations on `PATH` are supported by
 launching their JavaScript entry points with Node, including project-local `node_modules/.bin` shims. Custom shims without a recognized entry
 point fail rather than falling back to shell execution. Printed POSIX commands are not intended for

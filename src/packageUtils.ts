@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as resolve from 'resolve';
 import { CliOptions } from './cli';
 import { readJson } from './readJson';
+import { log } from './output';
 
 interface PackageJson {
   name: string;
@@ -95,8 +96,8 @@ export function walkPackageDependencyTree(
   const packageDependencies = getPackageMeta(packagePath, packageJson, isAncestorDevDependency);
 
   if (options.debug) {
-    console.log(packageJsonPath);
-    packageDependencies.peerDependencies.forEach((dep) => console.log(dep));
+    log(packageJsonPath);
+    packageDependencies.peerDependencies.forEach((dep) => log(dep));
   }
 
   visitor(packagePath, packageJson, packageDependencies);
@@ -112,7 +113,7 @@ export function walkPackageDependencyTree(
       if (packageDependencies.optionalDependencies.some((x) => x.name === dependency.name)) {
         // don't fail if the missing dependency is in optionalDependencies
         if (options.debug) {
-          console.log(`Ignoring missing optional dependency ${dependency.name} from ${packagePath}`);
+          log(`Ignoring missing optional dependency ${dependency.name} from ${packagePath}`);
         }
         return;
       } else {
