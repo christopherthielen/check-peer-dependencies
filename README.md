@@ -108,3 +108,16 @@ Searching for solutions:
 
 yarn upgrade @angular/router@8.2.10
 ```
+
+### Package manager execution
+
+Registry queries and automatic installation pass arguments directly to npm/yarn without a shell.
+Peer names must be registry package names (including scoped names); paths, URLs, package specs, unscoped archive-like names and
+options are rejected. Version ranges are used only for semver matching, and installation uses the
+validated version returned by the registry. Printed installation commands are quoted for POSIX
+shells; they are never used to execute automatic installation.
+
+On Windows, standard npm, Yarn Classic and Corepack `.cmd` installations on `PATH` are supported by
+launching their JavaScript entry points with Node. Custom shims without a recognized entry
+point fail rather than falling back to shell execution. Printed POSIX commands are not intended for
+PowerShell or cmd.exe. Installing packages still runs the package manager's normal lifecycle scripts.

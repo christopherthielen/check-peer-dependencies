@@ -1,6 +1,7 @@
 import * as semver from 'semver';
-import { exec } from 'shelljs';
+import { execFileSync } from 'child_process';
 import { Dependency } from './packageUtils';
+import { getPackageManagerProcess } from './packageManagerProcess';
 
 function semverReverseSort(a, b) {
   const lt = semver.lt(a, b);
@@ -37,18 +38,38 @@ export function findPossibleResolutions(problems: Dependency[], allPeerDependenc
 function findPossibleResolution(packageName, allPeerDeps) {
   const requiredPeerVersions = allPeerDeps.filter((dep) => dep.name === packageName);
   // todo: skip this step if only one required peer version and it's an exact version
-  const command = `npm view ${packageName} versions`;
+  // Only registry package names are valid here, never options, paths, URLs or package specs.
+  const packageNamePattern = /^(?:@[a-zA-Z0-9~][a-zA-Z0-9._~-]*\/)?[a-zA-Z0-9~][a-zA-Z0-9._~-]*$/;
+  if (
+    typeof packageName !== 'string' ||
+    /\s/.test(packageName) ||
+    !packageNamePattern.test(packageName) ||
+    (!packageName.startsWith('@') && /\.(?:tgz|tar\.gz|tar)$/i.test(packageName))
+  ) {
+    console.error(`Invalid peer dependency package name: ${JSON.stringify(packageName)}`);
+    return;
+  }
   let rawVersionsInfo;
   try {
-    rawVersionsInfo = exec(command, { silent: true }).stdout;
-    const availableVersions = JSON.parse(rawVersionsInfo.replace(/'/g, '"')).sort(semverReverseSort);
+    const command = getPackageManagerProcess('npm', ['view', packageName, 'versions', '--json']);
+    rawVersionsInfo = execFileSync(command.executable, command.args, {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    const parsedVersions = JSON.parse(rawVersionsInfo);
+    // npm may return a single version as a string.
+    const versions = typeof parsedVersions === 'string' ? [parsedVersions] : parsedVersions;
+    if (!Array.isArray(versions) || versions.some((version) => typeof version !== 'string' || !semver.valid(version))) {
+      throw new Error('npm returned an invalid versions response');
+    }
+    const availableVersions = versions.sort(semverReverseSort);
     return availableVersions.find((ver) =>
       requiredPeerVersions.every((peerVer) => {
         return semver.satisfies(ver, peerVer.version, { includePrerelease: true });
       })
     );
   } catch (err) {
-    console.error(`Error while running command: '${command}'`);
+    console.error(`Error fetching npm versions for ${JSON.stringify(packageName)}`);
     console.error(err);
     console.error();
     console.error('npm output:');

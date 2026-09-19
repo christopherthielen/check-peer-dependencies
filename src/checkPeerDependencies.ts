@@ -1,9 +1,8 @@
 #!/usr/bin/env node
 import * as semver from 'semver';
 
-import { exec } from 'shelljs';
 import { CliOptions } from './cli';
-import { getCommandLines } from './packageManager';
+import { formatCommand, getInstallCommands, InstallCommand, runInstallCommand } from './packageManager';
 import { Dependency, gatherPeerDependencies, getInstalledVersion, isSameDep } from './packageUtils';
 import { findPossibleResolutions, Resolution } from './solution';
 
@@ -93,16 +92,16 @@ function findSolutions(problems: Dependency[], allNestedPeerDependencies: Depend
 }
 
 function installPeerDependencies(
-  commandLines: any[],
+  commands: InstallCommand[],
   options: CliOptions,
   nosolution: Resolution[],
   packageManager: string
 ) {
   console.log('Installing peerDependencies...');
   console.log();
-  commandLines.forEach((command) => {
-    console.log(`$ ${command}`);
-    exec(command);
+  commands.forEach((command) => {
+    console.log(`$ ${formatCommand(command)}`);
+    runInstallCommand(command);
     console.log();
   });
 
@@ -153,20 +152,20 @@ export function checkPeerDependencies(packageManager: string, options: CliOption
 
   if (options.install) {
     const { nosolution, resolutionsWithSolutions } = findSolutions(problems, allNestedPeerDependencies);
-    const commandLines = getCommandLines(packageManager, resolutionsWithSolutions);
+    const commands = getInstallCommands(packageManager, resolutionsWithSolutions);
 
-    if (commandLines.length) {
-      return installPeerDependencies(commandLines, options, nosolution, packageManager);
+    if (commands.length) {
+      return installPeerDependencies(commands, options, nosolution, packageManager);
     }
   } else if (options.findSolutions) {
     const { resolutionsWithSolutions } = findSolutions(problems, allNestedPeerDependencies);
-    const commandLines = getCommandLines(packageManager, resolutionsWithSolutions);
+    const commands = getInstallCommands(packageManager, resolutionsWithSolutions);
 
-    if (commandLines.length) {
+    if (commands.length) {
       console.log();
-      console.log(`Install peerDependencies using ${commandLines.length > 1 ? 'these commands:' : 'this command'}:`);
+      console.log(`Install peerDependencies using ${commands.length > 1 ? 'these commands:' : 'this command'}:`);
       console.log();
-      commandLines.forEach((command) => console.log(command));
+      commands.forEach((command) => console.log(formatCommand(command)));
       console.log();
     }
   } else {
