@@ -7,10 +7,12 @@
     "build": "tsc",
     "prepublishOnly": "npm run build",
     "release": "release",
-    "test": "npm run build && node test/security.js",
+    "test": "npm run build && npm run test:security && node test/run-downstream.js",
+    "test:security": "node test/security.js",
+    "test:downstream": "npm run build && node test/run-downstream.js",
     "prepare": "husky",
-    "format": "oxfmt \"src/**/*.ts\"",
-    "format:check": "oxfmt --check \"src/**/*.ts\""
+    "format": "oxfmt \"src/**/*.ts\" \"test/**/*.js\"",
+    "format:check": "oxfmt --check \"src/**/*.ts\" \"test/**/*.js\""
   },
   "bin": {
     "check-peer-dependencies": "dist/cli.js"
@@ -44,7 +46,8 @@
     "husky": "^9.1.7",
     "lint-staged": "^17.5.1",
     "oxfmt": "^0.68.0",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "yarn": "1.22.22"
   },
   "devEngines": {
     "packageManager": {

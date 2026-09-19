@@ -1,0 +1,7 @@
+{
+  "name": "dev-plugin",
+  "version": "1.0.0",
+  "peerDependencies": {
+    "other-peer": "^1"
+  }
+}

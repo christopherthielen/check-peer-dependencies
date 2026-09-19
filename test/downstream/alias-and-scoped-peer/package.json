@@ -1,0 +1,9 @@
+{
+  "name": "fixture-alias-and-scoped-peer",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "alias": "npm:plugin@1.0.0",
+    "@fixture/peer": "1.0.0"
+  }
+}

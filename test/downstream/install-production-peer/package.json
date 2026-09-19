@@ -1,0 +1,8 @@
+{
+  "name": "fixture-install-production-peer",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "plugin": "1.0.0"
+  }
+}

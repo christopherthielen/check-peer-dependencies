@@ -1,0 +1,7 @@
+{
+  "name": "other-plugin",
+  "version": "1.0.0",
+  "peerDependencies": {
+    "peer": ">=1.1 <2"
+  }
+}

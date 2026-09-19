@@ -69,9 +69,12 @@ npm ci
 npm run build
 npm run format
 npm run format:check
+npm test
 ```
 
-Oxfmt formats the TypeScript sources. The pre-commit hook formats staged files using lint-staged.
+Oxfmt formats the TypeScript sources and JavaScript tests. The pre-commit hook formats staged files using lint-staged.
+
+See [the test guide](test/README.md) to run one downstream scenario or add a fixture of your own.
 
 ## Example outputs:
 
