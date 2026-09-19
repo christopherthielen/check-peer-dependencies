@@ -8,7 +8,7 @@ on:
 
 jobs:
   ci:
-    needs: [test]
+    needs: [test, package-compatibility]
     runs-on: ubuntu-latest
     steps:
       - run: true
@@ -34,3 +34,44 @@ jobs:
         run: npm run build
       - name: Check Peer Dependencies
         run: node dist/cli.js
+      - name: Pack Consumer Artifact
+        if: runner.os == 'Linux'
+        run: npm pack --ignore-scripts --pack-destination "$RUNNER_TEMP"
+      - uses: actions/upload-artifact@v4
+        if: runner.os == 'Linux'
+        with:
+          name: npm-package
+          path: ${{ runner.temp }}/check-peer-dependencies-*.tgz
+          if-no-files-found: error
+  package-compatibility:
+    name: Packed CLI (Node ${{ matrix.node }})
+    needs: [test]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [10, 14, 22, 24]
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: npm-package
+          path: package
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Install Packed Package
+        run: |
+          mkdir consumer
+          cd consumer
+          npm init -y
+          npm install ../package/*.tgz --no-audit --no-fund
+      - name: Check CommonJS API and CLI
+        working-directory: consumer
+        run: |
+          node -e "require('assert').strictEqual(typeof require('check-peer-dependencies').checkPeerDependencies, 'function')"
+          node -e "for (const name of ['typescript', 'oxfmt', 'lint-staged']) require('assert').strictEqual(require('fs').existsSync('node_modules/' + name), false)"
+          ./node_modules/.bin/check-peer-dependencies
+      - name: Check ESM Interoperability
+        if: matrix.node != 10
+        working-directory: consumer
+        run: node --input-type=module -e "import { checkPeerDependencies } from 'check-peer-dependencies'; import assert from 'assert'; assert.strictEqual(typeof checkPeerDependencies, 'function')"
