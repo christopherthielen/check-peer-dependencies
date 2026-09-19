@@ -1,0 +1,9 @@
+{
+  "name": "fixture-intersecting-ranges",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "plugin": "1.0.0",
+    "other-plugin": "1.0.0"
+  }
+}

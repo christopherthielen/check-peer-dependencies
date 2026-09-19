@@ -1,0 +1,8 @@
+{
+  "name": "fixture-install-lifecycle-failure",
+  "version": "1.0.0",
+  "private": true,
+  "peerDependencies": {
+    "broken-peer": "^1"
+  }
+}

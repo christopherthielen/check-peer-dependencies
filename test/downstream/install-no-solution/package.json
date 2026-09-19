@@ -1,0 +1,8 @@
+{
+  "name": "fixture-install-no-solution",
+  "version": "1.0.0",
+  "private": true,
+  "peerDependencies": {
+    "peer": "^99"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "name": "bridge",
+  "version": "1.0.0",
+  "peerDependencies": {
+    "peer": "^1"
+  }
+}

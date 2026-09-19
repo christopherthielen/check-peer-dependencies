@@ -1,0 +1,8 @@
+{
+  "name": "fixture-manager-selection",
+  "version": "1.0.0",
+  "private": true,
+  "peerDependencies": {
+    "peer": "^1"
+  }
+}

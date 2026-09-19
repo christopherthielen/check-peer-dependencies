@@ -1,0 +1,11 @@
+{
+  "name": "fixture-install-mixed-peers",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "plugin": "1.0.0"
+  },
+  "devDependencies": {
+    "dev-plugin": "1.0.0"
+  }
+}

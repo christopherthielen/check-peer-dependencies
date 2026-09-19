@@ -1,0 +1,9 @@
+{
+  "name": "fixture-incompatible-peer",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "plugin": "1.0.0",
+    "peer": "2.0.0"
+  }
+}

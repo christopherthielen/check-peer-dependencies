@@ -1,0 +1,12 @@
+{
+  "name": "plugin",
+  "version": "1.0.0",
+  "peerDependencies": {
+    "peer": "^1.0.0"
+  },
+  "peerDependenciesMeta": {
+    "peer": {
+      "optional": true
+    }
+  }
+}

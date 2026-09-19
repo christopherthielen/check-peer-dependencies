@@ -1,0 +1,14 @@
+{
+  "name": "fixture-package-config",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "plugin": "1.0.0"
+  },
+  "checkPeerDependencies": {
+    "ignore": [
+      "peer"
+    ],
+    "verbose": true
+  }
+}

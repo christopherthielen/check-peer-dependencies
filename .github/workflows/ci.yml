@@ -13,7 +13,7 @@ jobs:
     steps:
       - run: true
   test:
-    name: Security tests and build (${{ matrix.os }})
+    name: Tests and build (${{ matrix.os }})
     strategy:
       fail-fast: false
       matrix:
@@ -30,8 +30,17 @@ jobs:
         run: npm ci
       - name: Check Formatting
         run: npm run format:check
-      - name: Run Security Tests
+      - name: Run Security and Downstream Tests
         run: npm test
+      - name: Save Failed Downstream Projects
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: downstream-failures-${{ matrix.os }}
+          path: ${{ runner.temp }}/peer-downstream-*/
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Check Peer Dependencies
         run: node dist/cli.js
       - name: Pack Consumer Artifact
@@ -69,7 +78,7 @@ jobs:
         working-directory: consumer
         run: |
           node -e "require('assert').strictEqual(typeof require('check-peer-dependencies').checkPeerDependencies, 'function')"
-          node -e "for (const name of ['typescript', 'oxfmt', 'lint-staged']) require('assert').strictEqual(require('fs').existsSync('node_modules/' + name), false)"
+          node -e "for (const name of ['typescript', 'oxfmt', 'lint-staged', 'yarn']) require('assert').strictEqual(require('fs').existsSync('node_modules/' + name), false)"
           ./node_modules/.bin/check-peer-dependencies
       - name: Check ESM Interoperability
         if: matrix.node != 10
