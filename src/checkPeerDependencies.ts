@@ -106,11 +106,10 @@ function installPeerDependencies(
     log();
   });
 
-  const newProblems = getAllNestedPeerDependencies(options)
-    .filter((dep) => isProblem(dep))
-    .filter((dep) => !nosolution.some((x) => isSameDep(x.problem, dep)));
+  const remainingProblems = getAllNestedPeerDependencies(options).filter((dep) => isProblem(dep));
+  const newProblems = remainingProblems.filter((dep) => !nosolution.some((x) => isSameDep(x.problem, dep)));
 
-  if (nosolution.length === 0 && newProblems.length === 0) {
+  if (remainingProblems.length === 0) {
     log('All peer dependencies are met');
   }
 
@@ -123,6 +122,7 @@ function installPeerDependencies(
       process.exit(5);
     }
   }
+  if (remainingProblems.length > 0) process.exitCode = 1;
   return;
 }
 
