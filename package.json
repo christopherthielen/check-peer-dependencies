@@ -33,7 +33,7 @@
   "homepage": "https://github.com/christopherthielen/check-peer-dependencies#readme",
   "dependencies": {
     "resolve": "^1.22.12",
-    "semver": "^7.3.4",
+    "semver": "^7.8.5",
     "yargs": "^16.2.2"
   },
   "devDependencies": {
