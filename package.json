@@ -9,7 +9,8 @@
     "release": "release",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepare": "husky",
-    "format": "prettier --write \"src/**/*.ts\""
+    "format": "oxfmt \"src/**/*.ts\"",
+    "format:check": "oxfmt --check \"src/**/*.ts\""
   },
   "bin": {
     "check-peer-dependencies": "dist/cli.js"
@@ -43,8 +44,8 @@
     "@types/yargs": "^16.0.11",
     "@uirouter/publish-scripts": "^2.8.0",
     "husky": "^9.1.7",
-    "prettier": "^3.7.4",
-    "pretty-quick": "^4.2.2",
+    "lint-staged": "^17.5.1",
+    "oxfmt": "^0.68.0",
     "typescript": "^7.0.2"
   },
   "devEngines": {
@@ -52,6 +53,14 @@
       "name": "npm",
       "version": "11.x",
       "onFail": "warn"
+    },
+    "runtime": {
+      "name": "node",
+      "version": ">=22.22.1",
+      "onFail": "warn"
     }
+  },
+  "lint-staged": {
+    "*": "oxfmt --no-error-on-unmatched-pattern"
   }
 }

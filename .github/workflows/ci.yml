@@ -13,8 +13,12 @@ jobs:
     steps:
       - run: true
   test:
-    name: Build
-    runs-on: ubuntu-latest
+    name: Build (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -24,6 +28,8 @@ jobs:
         run: npm install --global npm@11.19.0
       - name: Install Dependencies
         run: npm ci
+      - name: Check Formatting
+        run: npm run format:check
       - name: Build
         run: npm run build
       - name: Check Peer Dependencies

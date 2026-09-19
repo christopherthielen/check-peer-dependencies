@@ -1,10 +1,10 @@
 ## check-peer-dependencies
 
-**Checks peer dependencies of the current NodeJS package.  Offers solutions for any that are unmet.**
+**Checks peer dependencies of the current NodeJS package. Offers solutions for any that are unmet.**
 
 This utility will recursively find all `peerDependencies` in your project's `dependencies` list.
 It checks if you have installed a package that meets the required peer dependency versions.
-If any peer dependencies are *unmet*, it will search for a compatible version to install.
+If any peer dependencies are _unmet_, it will search for a compatible version to install.
 
 Note: you must run `npm install` or `yarn` first in order to install all normal dependencies.
 
@@ -14,8 +14,8 @@ usage:
 npx check-peer-dependencies [--yarn|--npm] [--install] [--help]
 ```
 
-
 Options:
+
 ```
   -h, --help                       Print usage information             [boolean]
       --version                    Show version number                 [boolean]
@@ -61,18 +61,21 @@ This is not a standard and is only understood by this `check-peer-dependencies`.
 
 ## Development
 
-Use Node.js 22 or newer and npm 11 for development. Commit dependency changes
+Use Node.js 22.22.1 or newer and npm 11 for development. Commit dependency changes
 with `package-lock.json`, the repository’s only lockfile.
 
 ```sh
 npm ci
 npm run build
 npm run format
+npm run format:check
 ```
+
+Oxfmt formats the TypeScript sources. The pre-commit hook formats staged files using lint-staged.
 
 ## Example outputs:
 
-### No problems 
+### No problems
 
 ```bash
 ~/projects/uirouter/sample-app-react master
@@ -105,4 +108,3 @@ Searching for solutions:
 
 yarn upgrade @angular/router@8.2.10
 ```
-
