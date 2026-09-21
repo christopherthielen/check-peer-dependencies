@@ -22,9 +22,14 @@ export function formatCommand(command: InstallCommand): string {
   return [command.executable, ...command.args].map(quote).join(' ');
 }
 
+const ALLOWED_EXECUTABLES = ['npm', 'yarn', process.execPath];
+
 export function runInstallCommand(command: InstallCommand): void {
   const invocation = getPackageManagerProcess(command.executable, command.args);
-  const result = spawnSync(invocation.executable, invocation.args, { stdio: 'inherit' });
+  if (!ALLOWED_EXECUTABLES.includes(invocation.executable)) {
+    throw new Error(`Refusing to run unexpected executable: ${invocation.executable}`);
+  }
+  const result = spawnSync(invocation.executable, invocation.args, { stdio: 'inherit', shell: false });
   if (result.error) {
     throw new Error(`Unable to start ${command.executable}: ${result.error.message}`);
   }
