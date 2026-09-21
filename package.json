@@ -63,5 +63,10 @@
   },
   "lint-staged": {
     "*": "oxfmt --no-error-on-unmatched-pattern"
+  },
+  "overrides": {
+    "conventional-changelog-ui-router-core": {
+      "compare-func": "2.0.0"
+    }
   }
 }
